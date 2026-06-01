@@ -7,7 +7,7 @@ const SHEET_NAMES = {
 };
 
 async function fetchSheet(sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&range=A1:Z1000`;
   const res = await fetch(url, { next: { revalidate: 300 } });
   const text = await res.text();
   return parseCSV(text);
@@ -76,8 +76,9 @@ export async function getDashboardData() {
   }));
 
   const startingBalance = 50.07;
-  const currentBalance = 114.92;
-  const roi = 124.20;
+  const lastRow = accountDataRows[accountDataRows.length - 1];
+  const currentBalance = lastRow ? toNum(lastRow[12]) : 50.07;
+  const roi = currentBalance > 0 ? ((currentBalance - startingBalance) / startingBalance) * 100 : 0;
   const allDrawdowns = equityCurve.map(r => r.drawdown).filter(d => d !== 0);
   const maxDrawdown = allDrawdowns.length > 0 ? Math.min(...allDrawdowns) : 0;
   const currentDrawdown = equityCurve[equityCurve.length - 1]?.drawdown || 0;
