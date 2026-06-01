@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "next": "16.2.6",
+    "papa": "^0.0.0",
+    "parse": "^8.6.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
