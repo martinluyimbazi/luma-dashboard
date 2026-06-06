@@ -42,10 +42,11 @@ function toNum(val) {
 }
 
 export async function getDashboardData() {
-  const [tradeRows, accountRows, campaignRows] = await Promise.all([
+  const [tradeRows, accountRows, campaignRows, dashboardRows] = await Promise.all([
     fetchSheet(SHEET_NAMES.tradeExecution),
     fetchSheet(SHEET_NAMES.accountA),
     fetchSheet(SHEET_NAMES.campaignLog),
+    fetchSheet('Dashboard'),
   ]);
 
   // ── TRADES ────────────────────────────────────────────────────────────────
@@ -63,22 +64,34 @@ export async function getDashboardData() {
   }));
 
   // ── ACCOUNT_A ─────────────────────────────────────────────────────────────
-  const accountDataRows = accountRows.slice(16).filter(r => r[1]);
+  const accountDataRows = accountRows.slice(10).filter(r => r[1]);
   const equityCurve = accountDataRows.map(r => ({
     tradeId: r[1],
     date: r[2],
     closedPL: toNum(r[10]),
-    closedBalance: toNum(r[12]),
+    closedBalance: toNum(r[12]) || toNum(r[13]),
     adjustedEquity: toNum(r[15]),
     runningPeak: toNum(r[16]),
     drawdown: toNum(r[17]),
     rMultiple: toNum(r[18]),
   }));
 
-  const startingBalance = 50.07;
+  const firstRow = accountDataRows[0];
+  const startingBalance = firstRow ? toNum(firstRow[4]) : 50.07;
   const lastRow = accountDataRows[accountDataRows.length - 1];
   const currentBalance = lastRow ? toNum(lastRow[12]) : 50.07;
   const roi = currentBalance > 0 ? ((currentBalance - startingBalance) / startingBalance) * 100 : 0;
+
+  // Pull key metrics directly from Dashboard sheet
+  // D11 = current balance (row 4, col D = index 3)
+  // D16 = current drawdown (row 6, col D = index 3)  
+  // D23 = avg growth per campaign % (row 13, col D = index 3)
+  // S13 = avg return per campaign R (row 4, col S = index 18)
+  // S15 = est campaigns to goal (row 6, col S = index 18)
+  const dashCurrentDrawdown = toNum(dashboardRows[5]?.[3]);
+  const dashGrowthPerCampaign = toNum(dashboardRows[12]?.[3]) || 0.2919;
+  const dashAvgReturnR = toNum(dashboardRows[3]?.[18]) || 3.28;
+  const dashEstCampaigns = toNum(dashboardRows[5]?.[18]) || null;
   const allDrawdowns = equityCurve.map(r => r.drawdown).filter(d => d !== 0);
   const maxDrawdown = allDrawdowns.length > 0 ? Math.min(...allDrawdowns) : 0;
   const currentDrawdown = equityCurve[equityCurve.length - 1]?.drawdown || 0;
@@ -139,7 +152,7 @@ export async function getDashboardData() {
   });
 
   // ── CAMPAIGNS ─────────────────────────────────────────────────────────────
-  const campaigns = campaignRows.slice(1)
+  const rawCampaigns = campaignRows.slice(1)
     .filter(r => r[1] && toNum(r[1]) > 0)
     .map(r => ({
       setupId:          toNum(r[1]),
@@ -149,10 +162,20 @@ export async function getDashboardData() {
       attempts:         toNum(r[5]),
       cumulativeR:      toNum(r[6]),
       runningPeak:      toNum(r[7]),
-      drawdown:         toNum(r[8]),
+      drawdown:         Math.abs(toNum(r[8])),
       drawdownDuration: toNum(r[9]),
       exitReason:       r[11] || '',
     }));
+
+  // Attach date and regime from first trade of each setup
+  const campaigns = rawCampaigns.map(c => {
+    const firstTrade = trades.find(t => t.setupId === c.setupId);
+    return {
+      ...c,
+      date:   firstTrade?.date   || '',
+      regime: firstTrade?.regime || '',
+    };
+  });
 
   const wonCampaigns  = campaigns.filter(c => c.totalR > 0);
   const lostCampaigns = campaigns.filter(c => c.totalR <= 0);
@@ -166,7 +189,7 @@ export async function getDashboardData() {
   const totalR = campaigns.length > 0
     ? campaigns[campaigns.length - 1].cumulativeR : 0;
   const payoffRatio = avgLossR !== 0 ? Math.abs(avgWinR / avgLossR) : 0;
-  const maxCampaignDD = Math.max(...campaigns.map(c => c.drawdown));
+  const maxCampaignDD = Math.max(...campaigns.map(c => Math.abs(c.drawdown)));
   const recoveryFactor = maxCampaignDD > 0 ? totalR / maxCampaignDD : 0;
 
   // Calmar Ratio = totalR / maxCampaignDD
@@ -323,6 +346,114 @@ export async function getDashboardData() {
     .sort((a, b) => b.totalR - a.totalR)
     .slice(0, 8);
 
+  // Convexity metrics
+  const sortedByR = [...campaigns].sort((a, b) => b.totalR - a.totalR);
+  const top1Contribution = totalR > 0 && sortedByR[0]
+    ? (sortedByR[0].totalR / totalR) * 100 : 0;
+  const top3Contribution = totalR > 0
+    ? (sortedByR.slice(0, 3).reduce((s, c) => s + c.totalR, 0) / totalR) * 100 : 0;
+  const rightTailCampaigns = campaigns.filter(c => c.totalR > 30).length;
+  const skewness = (() => {
+    const mean = campaigns.reduce((s, c) => s + c.totalR, 0) / campaigns.length;
+    const std = Math.sqrt(campaigns.reduce((s, c) => s + Math.pow(c.totalR - mean, 2), 0) / campaigns.length);
+    const skew = std > 0
+      ? campaigns.reduce((s, c) => s + Math.pow((c.totalR - mean) / std, 3), 0) / campaigns.length
+      : 0;
+    return parseFloat(skew.toFixed(2));
+  })();
+  const convexityLabel = top1Contribution > 50 ? 'Highly Convex'
+    : top3Contribution > 70 ? 'Convex' : 'Moderate';
+
+  // Distribution intelligence
+  const sortedR = [...campaigns].map(c => c.totalR).sort((a, b) => a - b);
+  const medianR = sortedR.length > 0
+    ? sortedR.length % 2 === 0
+      ? (sortedR[sortedR.length/2 - 1] + sortedR[sortedR.length/2]) / 2
+      : sortedR[Math.floor(sortedR.length/2)]
+    : 0;
+
+  // Return attribution donut
+  const returnAttribution = [
+    { label: 'Right Tail (>30R)', color: '#8b5cf6', campaigns: campaigns.filter(c => c.totalR > 30), threshold: '>30R' },
+    { label: 'Normal Winners', color: '#3b82f6', campaigns: campaigns.filter(c => c.totalR > 5 && c.totalR <= 30), threshold: '5-30R' },
+    { label: 'Breakeven (0-5R)', color: '#3fb950', campaigns: campaigns.filter(c => c.totalR >= 0 && c.totalR <= 5), threshold: '0-5R' },
+    { label: 'Losing', color: '#f85149', campaigns: campaigns.filter(c => c.totalR < 0), threshold: '<0R' },
+  ].map(g => ({
+    label: g.label,
+    color: g.color,
+    count: g.campaigns.length,
+    totalR: parseFloat(g.campaigns.reduce((s, c) => s + c.totalR, 0).toFixed(2)),
+    pct: totalR !== 0
+      ? parseFloat((g.campaigns.reduce((s, c) => s + c.totalR, 0) / Math.abs(totalR) * 100).toFixed(1))
+      : 0,
+  }));
+
+  // R distribution with corrected bands
+  const rBandsNew = [
+    { label: '< -2R',     min: -999, max: -2,  isWin: false },
+    { label: '-2 to 0R',  min: -2,   max: 0,   isWin: false },
+    { label: '0 to 1R',   min: 0,    max: 1,   isWin: true  },
+    { label: '1 to 5R',   min: 1,    max: 5,   isWin: true  },
+    { label: '5 to 10R',  min: 5,    max: 10,  isWin: true  },
+    { label: '10 to 15R', min: 10,   max: 15,  isWin: true  },
+    { label: '15 to 25R', min: 15,   max: 25,  isWin: true  },
+    { label: '25 to 40R', min: 25,   max: 40,  isWin: true  },
+    { label: '> 40R',     min: 40,   max: 999, isWin: true  },
+  ];
+  const rDistributionNew = rBandsNew.map(band => ({
+    label: band.label,
+    count: campaigns.filter(c => c.totalR > band.min && c.totalR <= band.max).length,
+    isWin: band.isWin,
+  }));
+
+  // Attempt efficiency
+  const attemptEfficiency = [1, 2, 3, 4, 5].map(n => {
+    const subset = campaigns.filter(c => c.attempts === n);
+    const wins = subset.filter(c => c.totalR > 0);
+    const avgR = subset.length > 0
+      ? parseFloat((subset.reduce((s, c) => s + c.totalR, 0) / subset.length).toFixed(2))
+      : 0;
+    return {
+      attempts: n === 5 ? '5+' : String(n),
+      campaigns: subset.length,
+      winRate: subset.length > 0 ? parseFloat(((wins.length / subset.length) * 100).toFixed(1)) : 0,
+      avgR,
+    };
+  });
+  const avgAttemptsPerCampaign = campaigns.length > 0
+    ? parseFloat((campaigns.reduce((s, c) => s + c.attempts, 0) / campaigns.length).toFixed(2))
+    : 0;
+
+  // Exit reasons with avg R
+  const exitReasonStats = {};
+  campaigns.forEach(c => {
+    if (!c.exitReason) return;
+    if (!exitReasonStats[c.exitReason]) exitReasonStats[c.exitReason] = { count: 0, totalR: 0 };
+    exitReasonStats[c.exitReason].count++;
+    exitReasonStats[c.exitReason].totalR += c.totalR;
+  });
+  const exitReasonsFull = Object.entries(exitReasonStats).map(([reason, stats]) => ({
+    reason,
+    frequency: stats.count,
+    avgR: parseFloat((stats.totalR / stats.count).toFixed(2)),
+    totalR: parseFloat(stats.totalR.toFixed(2)),
+  })).sort((a, b) => b.frequency - a.frequency);
+
+  // Best and worst campaigns
+  const bestCampaigns = [...campaigns].filter(c => c.totalR > 0).sort((a, b) => b.totalR - a.totalR).slice(0, 5);
+  const worstCampaigns = [...campaigns].filter(c => c.totalR < 0).sort((a, b) => a.totalR - b.totalR).slice(0, 5);
+  const bestWorstRatio = worstCampaigns[0] && Math.abs(worstCampaigns[0].totalR) > 0
+    ? parseFloat((bestCampaigns[0]?.totalR / Math.abs(worstCampaigns[0].totalR)).toFixed(1))
+    : 0;
+
+  // Profit factor
+  const totalWinR = wonCampaigns.reduce((s, c) => s + c.totalR, 0);
+  const totalLossR = Math.abs(lostCampaigns.reduce((s, c) => s + c.totalR, 0));
+  const profitFactor = totalLossR > 0 ? parseFloat((totalWinR / totalLossR).toFixed(2)) : 0;
+
+  // Max drawdown duration
+  const maxDrawdownDuration = Math.max(...campaigns.map(c => c.drawdownDuration), 0);
+  const maxDrawdownDurationStart = campaigns.find(c => c.drawdownDuration === maxDrawdownDuration)?.setupId || 0;  
   const rollingAvgR = campaigns.map((c, i) => {
     const window = campaigns.slice(Math.max(0, i - 4), i + 1);
     const avg = window.reduce((s, w) => s + w.totalR, 0) / window.length;
@@ -334,8 +465,11 @@ export async function getDashboardData() {
     currentBalance,
     roi,
     maxDrawdown,
-    currentDrawdown,
+    currentDrawdown: dashCurrentDrawdown || currentDrawdown,
     avgDrawdown,
+    avgReturnPerCampaign: dashAvgReturnR,
+    avgGrowthPerCampaign: dashGrowthPerCampaign,
+    estCampaignsToGoal: dashEstCampaigns,
     peakEquity,
     quarterlyGoal,
     progressToGoal: (currentBalance / quarterlyGoal) * 100,
@@ -377,6 +511,23 @@ export async function getDashboardData() {
     campaigns,
     topCampaigns,
     exitReasonsArr,
+    exitReasonsFull,
     rollingAvgR,
+    skewness,
+    top1Contribution: parseFloat(top1Contribution.toFixed(1)),
+    top3Contribution: parseFloat(top3Contribution.toFixed(1)),
+    rightTailCampaigns,
+    convexityLabel,
+    medianR: parseFloat(medianR.toFixed(2)),
+    returnAttribution,
+    rDistributionNew,
+    attemptEfficiency,
+    avgAttemptsPerCampaign,
+    bestCampaigns,
+    worstCampaigns,
+    bestWorstRatio,
+    profitFactor,
+    maxDrawdownDuration,
+    maxDrawdownDurationStart,
   };
 }
