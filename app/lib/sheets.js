@@ -460,6 +460,153 @@ export async function getDashboardData() {
     return { setupId: c.setupId, rollingAvgR: parseFloat(avg.toFixed(3)) };
   });
 
+  // ── RISK HEALTH SCORE ─────────────────────────────────────────────────
+  const currentDrawdownPct = Math.abs(toNum(dashboardRows[5]?.[3]) || 0);
+  const maxDrawdownPct = Math.abs(maxDrawdown);
+
+  // 1. Drawdown severity (25pts)
+  const ddScore = maxDrawdownPct > 0
+    ? Math.max(0, 25 * (1 - currentDrawdownPct / maxDrawdownPct))
+    : 25;
+
+  // 2. Recovery factor (20pts)
+  const rfScore = Math.min(20, (recoveryFactor / 2) * 20);
+
+  // 3. Consecutive loss streak (20pts)
+  const streakScore = currentStreak >= 5
+    ? 0
+    : Math.max(0, 20 * (1 - currentStreak / 5));
+
+  // 4. Edge retention (20pts)
+  const lastRolling = rollingAvgR[rollingAvgR.length - 1]?.rollingAvgR || 0;
+  const edgeScore = lastRolling >= 1 ? 20
+    : lastRolling > 0 ? 10
+    : 0;
+
+  // 5. Risk of ruin (15pts)
+  const rorPct = Math.max(0, riskOfRuin);
+  const rorScore = rorPct < 1 ? 15
+    : rorPct < 5 ? 10
+    : rorPct < 10 ? 5
+    : 0;
+
+  const riskHealthScore = Math.round(ddScore + rfScore + streakScore + edgeScore + rorScore);
+  const riskLabel = riskHealthScore >= 70 ? 'Low Risk'
+    : riskHealthScore >= 40 ? 'Moderate Risk'
+    : 'High Risk';
+  const riskLabelColor = riskHealthScore >= 70 ? 'green'
+    : riskHealthScore >= 40 ? 'amber'
+    : 'red';
+
+  // ── DRAWDOWN METRICS ──────────────────────────────────────────────────
+  const maxDrawdownDollar = peakEquity * Math.abs(maxDrawdown) / 100;
+  const currentDrawdownDollar = currentBalance * Math.abs(toNum(dashboardRows[5]?.[3]) || 0) / 100;
+  const avgDrawdownPct = allDrawdowns.length > 0
+    ? allDrawdowns.reduce((s, d) => s + d, 0) / allDrawdowns.length
+    : 0;
+
+  // Drawdown periods — group consecutive drawdown trades
+  const drawdownPeriods = [];
+  let inDD = false;
+  let ddStart = 0;
+  let ddDepth = 0;
+  equityCurve.forEach((r, i) => {
+    if (r.drawdown < -1 && !inDD) { inDD = true; ddStart = i; ddDepth = r.drawdown; }
+    else if (r.drawdown < ddDepth && inDD) { ddDepth = r.drawdown; }
+    else if (r.drawdown >= -0.5 && inDD) {
+      drawdownPeriods.push({ start: ddStart, end: i, depth: ddDepth, duration: i - ddStart });
+      inDD = false; ddDepth = 0;
+    }
+  });
+  const avgDDDuration = drawdownPeriods.length > 0
+    ? parseFloat((drawdownPeriods.reduce((s, d) => s + d.duration, 0) / drawdownPeriods.length).toFixed(1))
+    : 0;
+  const currentDDRank = drawdownPeriods.length > 0
+    ? drawdownPeriods.filter(d => Math.abs(d.depth) >= Math.abs(toNum(dashboardRows[5]?.[3]) || 0)).length
+    : 0;
+
+  // Recovery progress
+  const recoveryProgress = peakEquity > 0 && currentBalance < peakEquity
+    ? parseFloat(((currentBalance - (peakEquity * (1 + maxDrawdown/100))) /
+        (peakEquity - (peakEquity * (1 + maxDrawdown/100))) * 100).toFixed(1))
+    : 100;
+
+  // ── RECOVERY ANALYSIS ─────────────────────────────────────────────────
+  const winningCampaignRs = wonCampaigns.map(c => c.totalR);
+  const largestRecovery = winningCampaignRs.length > 0 ? Math.max(...winningCampaignRs) : 0;
+  const avgRecovery = winningCampaignRs.length > 0
+    ? winningCampaignRs.reduce((s, r) => s + r, 0) / winningCampaignRs.length
+    : 0;
+  const recoverySuccessRate = campaigns.length > 0
+    ? parseFloat(((wonCampaigns.length / campaigns.length) * 100).toFixed(1))
+    : 0;
+  const estCampaignsToRecover = recoveryFactor > 0 && avgRecovery > 0
+    ? Math.ceil(maxCampaignDD / avgRecovery)
+    : 0;
+
+  // ── RISK CONCENTRATION ────────────────────────────────────────────────
+  const totalLossRabs = Math.abs(lostCampaigns.reduce((s, c) => s + c.totalR, 0));
+  const worstCampaignPct = totalLossRabs > 0 && worstCampaigns[0]
+    ? parseFloat((Math.abs(worstCampaigns[0].totalR) / totalLossRabs * 100).toFixed(1))
+    : 0;
+  const top3LossPct = totalLossRabs > 0
+    ? parseFloat((worstCampaigns.slice(0, 3).reduce((s, c) => s + Math.abs(c.totalR), 0) / totalLossRabs * 100).toFixed(1))
+    : 0;
+  const top5LossPct = totalLossRabs > 0
+    ? parseFloat((worstCampaigns.slice(0, 5).reduce((s, c) => s + Math.abs(c.totalR), 0) / totalLossRabs * 100).toFixed(1))
+    : 0;
+  const topWinnerPct = totalR > 0 && wonCampaigns[0]
+    ? parseFloat((Math.max(...wonCampaigns.map(c => c.totalR)) / totalR * 100).toFixed(1))
+    : 0;
+  const lossGainRatio = totalR > 0
+    ? parseFloat((totalLossRabs / totalR).toFixed(1))
+    : 0;
+
+  // ── RISK ATTRIBUTION ──────────────────────────────────────────────────
+  const totalLossAbsR = Math.abs(lostCampaigns.reduce((s,c) => s + c.totalR, 0));
+  const riskAttribution = (() => {
+    // By exit reason
+    const byReason = {};
+    lostCampaigns.forEach(c => {
+      if (!c.exitReason) return;
+      if (!byReason[c.exitReason]) byReason[c.exitReason] = 0;
+      byReason[c.exitReason] += Math.abs(c.totalR);
+    });
+    return Object.entries(byReason)
+      .map(([reason, lossR]) => ({
+        reason,
+        lossR: parseFloat(lossR.toFixed(2)),
+        pct: totalLossAbsR > 0 ? parseFloat((lossR / totalLossAbsR * 100).toFixed(0)) : 0,
+      }))
+      .sort((a, b) => b.lossR - a.lossR);
+  })();
+
+  // ── FORWARD RISK OUTLOOK ──────────────────────────────────────────────
+  const expectedDDLow = parseFloat((avgDrawdownPct * 0.8).toFixed(1));
+  const expectedDDHigh = parseFloat((maxDrawdown * 1.1).toFixed(1));
+  const projectedRecoveryLow = Math.max(1, Math.round(avgDDDuration * 0.8));
+  const projectedRecoveryHigh = Math.round(avgDDDuration * 1.3);
+  const rollingTrend = rollingAvgR.length >= 3
+    ? rollingAvgR[rollingAvgR.length-1].rollingAvgR - rollingAvgR[rollingAvgR.length-3].rollingAvgR
+    : 0;
+  const edgeStability = rollingTrend > 0.5 ? 'Improving'
+    : rollingTrend > -0.5 ? 'Stable'
+    : 'Deteriorating';
+  const edgeStabilityColor = rollingTrend > 0.5 ? 'green'
+    : rollingTrend > -0.5 ? 'amber'
+    : 'red';
+
+  // ── SYSTEM RESILIENCE ─────────────────────────────────────────────────
+  const survivalProbability = Math.max(0, 100 - Math.max(0, riskOfRuin)).toFixed(2);
+  const capitalAtRisk = Math.abs(toNum(dashboardRows[5]?.[3]) || 0);
+  const recoveryCapabilityLabel = recoveryFactor >= 1.5 ? 'Strong'
+    : recoveryFactor >= 1 ? 'Moderate'
+    : recoveryFactor > 0 ? 'Weak'
+    : 'None';
+  const recoveryCapabilityColor = recoveryFactor >= 1.5 ? 'green'
+    : recoveryFactor >= 1 ? 'amber'
+    : 'red';
+
   return {
     startingBalance,
     currentBalance,
@@ -513,6 +660,37 @@ export async function getDashboardData() {
     exitReasonsArr,
     exitReasonsFull,
     rollingAvgR,
+    riskHealthScore,
+    riskLabel,
+    riskLabelColor,
+    maxDrawdownDollar,
+    currentDrawdownDollar,
+    avgDrawdownPct,
+    avgDDDuration,
+    currentDDRank,
+    drawdownPeriodsCount: drawdownPeriods.length,
+    recoveryProgress: Math.max(0, Math.min(100, recoveryProgress)),
+    largestRecovery,
+    avgRecovery,
+    recoverySuccessRate,
+    estCampaignsToRecover,
+    worstCampaignPct,
+    top3LossPct,
+    top5LossPct,
+    topWinnerPct,
+    lossGainRatio,
+    riskAttribution,
+    expectedDDLow,
+    expectedDDHigh,
+    projectedRecoveryLow,
+    projectedRecoveryHigh,
+    edgeStability,
+    edgeStabilityColor,
+    survivalProbability,
+    capitalAtRisk,
+    recoveryCapabilityLabel,
+    recoveryCapabilityColor,
+    currentDrawdownPct: parseFloat(currentDrawdownPct.toFixed(2)),
     skewness,
     top1Contribution: parseFloat(top1Contribution.toFixed(1)),
     top3Contribution: parseFloat(top3Contribution.toFixed(1)),

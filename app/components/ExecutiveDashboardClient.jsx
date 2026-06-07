@@ -111,11 +111,11 @@ export default function ExecutiveDashboardClient({ data }) {
           {/* Balance — hero metric */}
           <div>
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-2">Balance</p>
-            <div className="text-[52px] font-bold text-white tracking-tight leading-none">
+            <div className="text-[50px] font-bold text-white tracking-tight leading-none">
               ${fmt(metrics.currentBalance)}
             </div>
             <div className="flex items-baseline gap-2 mt-2">
-              <span className="text-[28px] font-bold text-emerald-400">+{roi.toFixed(2)}%</span>
+              <span className="text-[25px] font-bold text-emerald-400">+{roi.toFixed(2)}%</span>
               <span className="text-[12px] text-[#6e7681]">from ${fmt(startingBalance)}</span>
             </div>
           </div>
