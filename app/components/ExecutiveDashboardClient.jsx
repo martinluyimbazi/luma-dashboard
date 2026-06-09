@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Target, ShieldAlert, Trophy, Zap, Activity,
-  AlertTriangle, CheckCircle, BarChart2, TrendingUp
+  AlertTriangle, CheckCircle, BarChart2, TrendingUp, Pencil
 } from 'lucide-react';
 import FilterBar from './FilterBar';
 import { EquityChart, RegimeChart } from './ExecutiveCharts';
@@ -35,6 +35,24 @@ function ScoreCard({ icon: Icon, label, status }) {
 
 export default function ExecutiveDashboardClient({ data }) {
   const [filters, setFilters] = useState({ dateRange: { from: '', to: '' } });
+const [goalTarget, setGoalTarget] = useState(data.quarterlyGoal);
+const [editingGoal, setEditingGoal] = useState(false);
+const [goalInput, setGoalInput] = useState('');
+
+useEffect(() => {
+  const saved = localStorage.getItem('luma_quarterly_goal');
+  if (saved) setGoalTarget(Number(saved));
+}, []);
+
+const handleGoalSave = () => {
+  const val = parseFloat(goalInput.replace(/,/g, ''));
+  if (!isNaN(val) && val > 0) {
+    setGoalTarget(val);
+    localStorage.setItem('luma_quarterly_goal', val);
+  }
+  setEditingGoal(false);
+  setGoalInput('');
+};
 
   const filteredEquity    = filterEquityCurve(data.equityCurve, filters);
   const filteredCampaigns = filterCampaigns(data.campaigns, filters);
@@ -72,7 +90,7 @@ export default function ExecutiveDashboardClient({ data }) {
 
   const estCampaigns = data.estCampaignsToGoal ||
     (data.avgGrowthPerCampaign > 0 && metrics.currentBalance > 0
-      ? Math.ceil(Math.log(data.quarterlyGoal / metrics.currentBalance) / Math.log(1 + data.avgGrowthPerCampaign))
+      ? Math.ceil(Math.log(goalTarget / metrics.currentBalance) / Math.log(1 + data.avgGrowthPerCampaign))
       : null);
 
   const scorecards = [
@@ -241,36 +259,62 @@ export default function ExecutiveDashboardClient({ data }) {
         </div>
 
         <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
-          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Goal Center (Quarterly)</p>
-          <div className="text-[25px] font-bold text-blue-400 mb-0.5">
-            ${fmt(metrics.currentBalance)}
-          </div>
-          <p className="text-[11px] text-[#6e7681] mb-3">of ${data.quarterlyGoal.toLocaleString()}</p>
-          <div className="w-full bg-[#1a1a1a] rounded-full h-2 mb-1 overflow-hidden">
-            <div
-              className="bg-blue-500 h-full rounded-full"
-              style={{ width: `${Math.min(data.progressToGoal, 100)}%` }}
-            />
-          </div>
-          <div className="text-right text-[11px] text-blue-400 mb-4">
-            {data.progressToGoal.toFixed(1)}%
-          </div>
-          <div className="border-t border-[#292929] pt-4 flex justify-between items-start">
-            <div>
-              <p className="text-[10px] text-[#6e7681]">Remaining</p>
-              <div className="text-[18px] font-bold text-white">
-                ${fmt(Math.max(0, data.quarterlyGoal - metrics.currentBalance))}
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] text-[#6e7681]">Est. campaigns to goal</p>
-              <div className="text-[18px] font-bold text-amber-400">
-                {metrics.currentBalance >= data.quarterlyGoal
-                  ? '🎯 Goal Reached!'
-                  : estCampaigns ? `~${estCampaigns}` : 'N/A'}
-              </div>
-            </div>
-          </div>
+          <div className="flex items-center justify-between mb-4">
+  <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Goal Center (Quarterly)</p>
+  <button
+    onClick={() => { setEditingGoal(true); setGoalInput(goalTarget.toString()); }}
+    className="text-[#6e7681] hover:text-white transition-colors"
+  >
+    <Pencil size={12} />
+  </button>
+</div>
+
+{editingGoal ? (
+  <div className="flex items-center gap-2 mb-3">
+    <span className="text-[#6e7681] text-[14px]">$</span>
+    <input
+      type="number"
+      value={goalInput}
+      onChange={e => setGoalInput(e.target.value)}
+      onKeyDown={e => { if (e.key === 'Enter') handleGoalSave(); if (e.key === 'Escape') setEditingGoal(false); }}
+      autoFocus
+      className="bg-[#0A0A0A] border border-[#2F6BFF] rounded-lg px-3 py-1.5 text-white text-[14px] w-full outline-none"
+      placeholder="Enter goal amount"
+    />
+    <button onClick={handleGoalSave} className="text-[11px] text-[#2F6BFF] hover:text-white whitespace-nowrap">Save</button>
+  </div>
+) : (
+  <div className="text-[25px] font-bold text-blue-400 mb-0.5">
+    ${fmt(metrics.currentBalance)}
+  </div>
+)}
+
+<p className="text-[11px] text-[#6e7681] mb-3">of ${goalTarget.toLocaleString()}</p>
+<div className="w-full bg-[#1a1a1a] rounded-full h-2 mb-1 overflow-hidden">
+  <div
+    className="bg-blue-500 h-full rounded-full transition-all duration-500"
+    style={{ width: `${Math.min((metrics.currentBalance / goalTarget) * 100, 100)}%` }}
+  />
+</div>
+<div className="text-right text-[11px] text-blue-400 mb-4">
+  {((metrics.currentBalance / goalTarget) * 100).toFixed(1)}%
+</div>
+<div className="border-t border-[#292929] pt-4 flex justify-between items-start">
+  <div>
+    <p className="text-[10px] text-[#6e7681]">Remaining</p>
+    <div className="text-[18px] font-bold text-white">
+      ${fmt(Math.max(0, goalTarget - metrics.currentBalance))}
+    </div>
+  </div>
+  <div className="text-right">
+    <p className="text-[10px] text-[#6e7681]">Est. campaigns to goal</p>
+    <div className="text-[18px] font-bold text-amber-400">
+      {metrics.currentBalance >= goalTarget
+        ? '🎯 Goal Reached!'
+        : estCampaigns ? `~${estCampaigns}` : 'N/A'}
+    </div>
+  </div>
+</div>
         </div>
       </div>
 

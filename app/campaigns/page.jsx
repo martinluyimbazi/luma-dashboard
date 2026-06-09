@@ -29,7 +29,7 @@ function generateInsight(data) {
   const expansionR   = data.regimeData.find(r => r.regime === 'Expansion')?.avgR.toFixed(2) || '0';
   const threshold    = Math.ceil(data.campaignWinRate / 10) * 10;
 
-  return `Campaign performance remains strongly positive despite a sub-${threshold}% win rate due to a ${payoff}× payoff ratio and ${expectancy}R realized expectancy per campaign. Returns are ${convexity} — the top campaign alone generated ${topContrib}% of total R, confirming significant right-tail dependence. Expansion regime setups deliver ${expansionR}R avg per campaign and represent your primary edge. ${failMode} remains the dominant failure mode and should be monitored closely to protect expectancy.`;
+  return `Campaign performance remains strongly positive despite a sub-${threshold}% win rate due to a ${payoff}× payoff ratio and ${expectancy}R realized expectancy per campaign. Returns are ${convexity} — the top campaign alone generated ${topContrib}% of total R, confirming significant right-tail dependence. Expansion regime setups deliver ${expansionR}R avg per campaign and represent the primary edge. ${failMode} remains the dominant failure mode and should be monitored closely to protect expectancy.`;
 }
 
 function getKeyTakeaways(data) {

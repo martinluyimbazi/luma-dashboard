@@ -137,9 +137,9 @@ export default async function RiskDashboard() {
               <p className="text-[10px] text-[#6e7681] mt-1">{data.recoveryCapabilityLabel}</p>
             </div>
             <div className="pl-4 flex flex-col justify-center">
-              <p className="text-[10px] text-[#6e7681] mb-1">Calmar Ratio</p>
-              <div className={`text-[28px] font-bold ${data.calmarRatio >= 1 ? 'text-emerald-400' : 'text-red-400'}`}>{data.calmarRatio.toFixed(2)}</div>
-              <p className="text-[10px] text-[#6e7681] mt-1">{data.calmarRatio >= 1 ? 'Good' : 'Poor'}</p>
+              <p className="text-[10px] text-[#6e7681] mb-1">Profit Factor</p>
+              <div className={`text-[28px] font-bold ${data.calmarRatio >= 2 ? 'text-emerald-400' : data.calmarRatio >= 1 ? 'text-amber-400' : 'text-red-400'}`}>{data.calmarRatio.toFixed(2)}</div>
+              <p className="text-[10px] text-[#6e7681] mt-1">{data.calmarRatio >= 2 ? 'Strong' : data.calmarRatio >= 1 ? 'Good' : 'Weak'}</p>
             </div>
           </div>
         </div>
@@ -209,12 +209,12 @@ export default async function RiskDashboard() {
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Recovery Analysis</p>
           <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-[#292929]">
             <div>
-              <p className="text-[10px] text-[#6e7681] mb-1">Largest Recovery</p>
+              <p className="text-[10px] text-[#6e7681] mb-1">Biggest Campaign R</p>
               <div className="text-[28px] font-bold text-emerald-400">+{data.largestRecovery.toFixed(2)}R</div>
             </div>
             <div>
-              <p className="text-[10px] text-[#6e7681] mb-1">Avg Recovery</p>
-              <div className="text-[28px] font-bold text-emerald-400">+{data.avgRecovery.toFixed(2)}R</div>
+              <p className="text-[10px] text-[#6e7681] mb-1">Avg R per Winning Campaign</p>
+              <div className="text-[28px] font-bold text-emerald-400"> +{data.avgRecovery.toFixed(2)}R</div>
             </div>
           </div>
           <div className="space-y-4 flex-1 flex flex-col justify-between">

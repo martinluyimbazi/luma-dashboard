@@ -90,7 +90,6 @@ export async function getDashboardData() {
   // S15 = est campaigns to goal (row 6, col S = index 18)
   const dashCurrentDrawdown = toNum(dashboardRows[15]?.[3]);
   const dashGrowthPerCampaign = toNum(dashboardRows[12]?.[3]) || 0.2919;
-  const dashAvgReturnR = toNum(dashboardRows[3]?.[18]) || 3.28;
   const dashEstCampaigns = toNum(dashboardRows[5]?.[18]) || null;
   const allDrawdowns = equityCurve.map(r => r.drawdown).filter(d => d !== 0);
   const maxDrawdown = allDrawdowns.length > 0 ? Math.min(...allDrawdowns) : 0;
@@ -179,6 +178,10 @@ export async function getDashboardData() {
 
   const wonCampaigns  = campaigns.filter(c => c.totalR > 0);
   const lostCampaigns = campaigns.filter(c => c.totalR <= 0);
+  const activeCampaigns = campaigns.filter(c => c.totalR !== 0);
+const dashAvgReturnR = activeCampaigns.length > 0
+  ? parseFloat((activeCampaigns.reduce((s, c) => s + c.totalR, 0) / activeCampaigns.length).toFixed(2))
+  : 0;
   const campaignWinRate = campaigns.length > 0
     ? (wonCampaigns.length / campaigns.length) * 100
     : 0;
@@ -190,17 +193,17 @@ export async function getDashboardData() {
     ? campaigns[campaigns.length - 1].cumulativeR : 0;
   const payoffRatio = avgLossR !== 0 ? Math.abs(avgWinR / avgLossR) : 0;
   const maxCampaignDD = Math.max(...campaigns.map(c => Math.abs(c.drawdown)));
-  const recoveryFactor = maxCampaignDD > 0 ? totalR / maxCampaignDD : 0;
+  const netProfit = currentBalance - 50;
+const maxDrawdownDollarEarly = peakEquity * Math.abs(maxDrawdown) / 100;
+const recoveryFactor = maxDrawdownDollarEarly > 0
+  ? parseFloat((netProfit / maxDrawdownDollarEarly).toFixed(2))
+  : 0;
 
   // Calmar Ratio = totalR / maxCampaignDD
-  const calmarRatio = maxCampaignDD > 0 ? totalR / maxCampaignDD : 0;
-
-  // Risk of Ruin (simplified Kelly-based formula)
-  const winRate = wonCampaigns.length / campaigns.length;
-  const lossRate = 1 - winRate;
-  const riskOfRuin = winRate > 0 && lossRate > 0 && Math.abs(avgLossR) > 0
-    ? Math.pow(Math.abs(avgLossR) / avgWinR, totalR / Math.abs(avgLossR)) * 100
-    : 0;
+  const firstDate = new Date(equityCurve[0]?.date);
+const lastDate = new Date(equityCurve[equityCurve.length - 1]?.date);
+const calendarDays = (lastDate - firstDate) / (1000 * 60 * 60 * 24) || 1;
+const annualizedR = (totalR / calendarDays) * 365;
 
   // Campaign consecutive W/L sequence
   const campaignWL = campaigns.map(c => c.totalR > 0 ? 'W' : 'L');
@@ -218,6 +221,10 @@ export async function getDashboardData() {
     else break;
   }
 
+  const winRate = wonCampaigns.length / campaigns.length;
+  const lossRate = 1 - winRate;
+  const riskOfRuin = parseFloat(Math.min(99.99, Math.pow(lossRate, maxCampaignStreak) * 100).toFixed(2));
+  
   // Consecutive wins/losses by month for chart
   const monthlyWL = {};
   campaigns.forEach(c => {
@@ -653,7 +660,7 @@ export async function getDashboardData() {
     quarterlyGoal,
     progressToGoal: (currentBalance / quarterlyGoal) * 100,
     ulcerIndex,
-    calmarRatio,
+    calmarRatio: profitFactor,
     riskOfRuin,
     dailyPLStdDev,
     dailyPLArr,
@@ -673,7 +680,7 @@ export async function getDashboardData() {
     payoffRatio,
     maxCampaignDD,
     recoveryFactor,
-    calmarRatio,
+    calmarRatio: profitFactor,
     maxCampaignStreak,
     currentStreak,
     alertThreshold: 5,
