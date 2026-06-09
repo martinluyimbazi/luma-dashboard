@@ -88,7 +88,7 @@ export async function getDashboardData() {
   // D23 = avg growth per campaign % (row 13, col D = index 3)
   // S13 = avg return per campaign R (row 4, col S = index 18)
   // S15 = est campaigns to goal (row 6, col S = index 18)
-  const dashCurrentDrawdown = toNum(dashboardRows[5]?.[3]);
+  const dashCurrentDrawdown = toNum(dashboardRows[15]?.[3]);
   const dashGrowthPerCampaign = toNum(dashboardRows[12]?.[3]) || 0.2919;
   const dashAvgReturnR = toNum(dashboardRows[3]?.[18]) || 3.28;
   const dashEstCampaigns = toNum(dashboardRows[5]?.[18]) || null;
@@ -461,7 +461,7 @@ export async function getDashboardData() {
   });
 
   // ── RISK HEALTH SCORE ─────────────────────────────────────────────────
-  const currentDrawdownPct = Math.abs(toNum(dashboardRows[5]?.[3]) || 0);
+  const currentDrawdownPct = Math.abs(currentDrawdown);
   const maxDrawdownPct = Math.abs(maxDrawdown);
 
   // 1. Drawdown severity (25pts)
@@ -500,12 +500,38 @@ export async function getDashboardData() {
 
   // ── DRAWDOWN METRICS ──────────────────────────────────────────────────
   const maxDrawdownDollar = peakEquity * Math.abs(maxDrawdown) / 100;
-  const currentDrawdownDollar = currentBalance * Math.abs(toNum(dashboardRows[5]?.[3]) || 0) / 100;
+  const currentDrawdownDollar = currentBalance * Math.abs(currentDrawdown) / 100;
   const avgDrawdownPct = allDrawdowns.length > 0
     ? allDrawdowns.reduce((s, d) => s + d, 0) / allDrawdowns.length
     : 0;
 
-  // Drawdown periods — group consecutive drawdown trades
+  // Drawdown periods — group consecutive losing campaigns (campaign-level, not trade-level)
+  const campaignDrawdownPeriods = [];
+  let inCampaignDD = false;
+  let campaignDDStart = 0;
+  let campaignDDDepth = 0;
+  let campaignDDPeak = 0;
+  campaigns.forEach((c, i) => {
+    const cumDD = c.drawdown; // drawdown field is already abs value from rawCampaigns
+    if (cumDD > 1 && !inCampaignDD) {
+      inCampaignDD = true;
+      campaignDDStart = i;
+      campaignDDDepth = cumDD;
+      campaignDDPeak = c.runningPeak;
+    } else if (cumDD > campaignDDDepth && inCampaignDD) {
+      campaignDDDepth = cumDD;
+    } else if (cumDD <= 0.5 && inCampaignDD) {
+      campaignDrawdownPeriods.push({
+        start: campaignDDStart,
+        end: i,
+        depth: campaignDDDepth,
+        duration: i - campaignDDStart,
+      });
+      inCampaignDD = false;
+      campaignDDDepth = 0;
+    }
+  });
+  // Fallback: also compute trade-level periods for currentDDRank depth comparison
   const drawdownPeriods = [];
   let inDD = false;
   let ddStart = 0;
@@ -518,11 +544,15 @@ export async function getDashboardData() {
       inDD = false; ddDepth = 0;
     }
   });
-  const avgDDDuration = drawdownPeriods.length > 0
-    ? parseFloat((drawdownPeriods.reduce((s, d) => s + d.duration, 0) / drawdownPeriods.length).toFixed(1))
+
+  const avgDDDuration = campaignDrawdownPeriods.length > 0
+    ? parseFloat((campaignDrawdownPeriods.reduce((s, d) => s + d.duration, 0) / campaignDrawdownPeriods.length).toFixed(1))
     : 0;
-  const currentDDRank = drawdownPeriods.length > 0
-    ? drawdownPeriods.filter(d => Math.abs(d.depth) >= Math.abs(toNum(dashboardRows[5]?.[3]) || 0)).length
+
+  // DD Rank: only meaningful when there IS an active drawdown (current DD > 0.5%)
+  const activeDDPct = Math.abs(currentDrawdown);
+  const currentDDRank = activeDDPct > 0.5 && drawdownPeriods.length > 0
+    ? drawdownPeriods.filter(d => Math.abs(d.depth) >= activeDDPct).length
     : 0;
 
   // Recovery progress
@@ -582,10 +612,12 @@ export async function getDashboardData() {
   })();
 
   // ── FORWARD RISK OUTLOOK ──────────────────────────────────────────────
-  const expectedDDLow = parseFloat((avgDrawdownPct * 0.8).toFixed(1));
-  const expectedDDHigh = parseFloat((maxDrawdown * 1.1).toFixed(1));
-  const projectedRecoveryLow = Math.max(1, Math.round(avgDDDuration * 0.8));
-  const projectedRecoveryHigh = Math.round(avgDDDuration * 1.3);
+  // Use avgDrawdownPct as realistic range bounds (maxDrawdown * 1.1 is the ceiling, not realistic expectation)
+  const expectedDDLow = parseFloat((avgDrawdownPct * 0.5).toFixed(1));
+  const expectedDDHigh = parseFloat((avgDrawdownPct * 1.5).toFixed(1));
+  const ddDurationBase = avgDDDuration > 0 ? avgDDDuration : maxDrawdownDuration;
+  const projectedRecoveryLow = Math.max(1, Math.round(ddDurationBase * 0.8));
+  const projectedRecoveryHigh = Math.max(projectedRecoveryLow + 1, Math.round(ddDurationBase * 1.3));
   const rollingTrend = rollingAvgR.length >= 3
     ? rollingAvgR[rollingAvgR.length-1].rollingAvgR - rollingAvgR[rollingAvgR.length-3].rollingAvgR
     : 0;
@@ -598,7 +630,7 @@ export async function getDashboardData() {
 
   // ── SYSTEM RESILIENCE ─────────────────────────────────────────────────
   const survivalProbability = Math.max(0, 100 - Math.max(0, riskOfRuin)).toFixed(2);
-  const capitalAtRisk = Math.abs(toNum(dashboardRows[5]?.[3]) || 0);
+  const capitalAtRisk = Math.abs(currentDrawdown);
   const recoveryCapabilityLabel = recoveryFactor >= 1.5 ? 'Strong'
     : recoveryFactor >= 1 ? 'Moderate'
     : recoveryFactor > 0 ? 'Weak'
@@ -661,6 +693,13 @@ export async function getDashboardData() {
     exitReasonsFull,
     rollingAvgR,
     riskHealthScore,
+    riskSubScores: {
+      drawdownControl: Math.round(ddScore),
+      recoveryFactor: Math.round(rfScore),
+      streakControl: Math.round(streakScore),
+      edgeRetention: Math.round(edgeScore),
+      riskOfRuin: Math.round(rorScore),
+    },
     riskLabel,
     riskLabelColor,
     maxDrawdownDollar,
@@ -668,7 +707,7 @@ export async function getDashboardData() {
     avgDrawdownPct,
     avgDDDuration,
     currentDDRank,
-    drawdownPeriodsCount: drawdownPeriods.length,
+    drawdownPeriodsCount: Math.max(drawdownPeriods.length, campaignDrawdownPeriods.length),
     recoveryProgress: Math.max(0, Math.min(100, recoveryProgress)),
     largestRecovery,
     avgRecovery,

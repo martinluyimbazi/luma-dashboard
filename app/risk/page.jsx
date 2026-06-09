@@ -8,7 +8,7 @@ import {
 } from '../components/RiskCharts';
 import {
   ShieldAlert, TrendingDown, Activity, AlertTriangle,
-  CheckCircle, BarChart2, Target, Zap
+  CheckCircle, BarChart2, Target, Zap, Info
 } from 'lucide-react';
 
 function RiskScoreGauge({ score, label, color }) {
@@ -20,7 +20,7 @@ function RiskScoreGauge({ score, label, color }) {
   return (
     <div className="flex flex-col items-center">
       <svg width="140" height="80" viewBox="0 0 140 80">
-        <path d={`M 16 72 A ${radius} ${radius} 0 0 1 124 72`} fill="none" stroke="#21262d" strokeWidth="10" strokeLinecap="round" />
+        <path d={`M 16 72 A ${radius} ${radius} 0 0 1 124 72`} fill="none" stroke="#1a1a1a" strokeWidth="10" strokeLinecap="round" />
         <path d={`M 16 72 A ${radius} ${radius} 0 0 1 124 72`} fill="none" stroke={strokeColor} strokeWidth="10" strokeLinecap="round"
           strokeDasharray={`${progress} ${circumference}`} />
         <text x="70" y="62" textAnchor="middle" fill="#e6edf3" fontSize="26" fontWeight="bold">{score}</text>
@@ -77,7 +77,7 @@ export default async function RiskDashboard() {
     { rule: 'Recovery factor > 1.0',           value: `${data.recoveryFactor.toFixed(2)}×`,       status: data.recoveryFactor >= 1 },
     { rule: 'Campaign win rate ≥ 25%',          value: `${data.campaignWinRate.toFixed(1)}%`,      status: data.campaignWinRate >= 25 },
     { rule: 'Profit factor > 1.0',              value: `${data.profitFactor.toFixed(2)}`,          status: data.profitFactor >= 1 },
-    { rule: 'Positive expectancy',              value: `Win ${data.avgWinR.toFixed(2)}R / Loss ${data.avgLossR.toFixed(2)}R`, status: data.avgWinR + data.avgLossR > 0 },
+    { rule: 'Positive expectancy',              value: `Win ${data.avgWinR.toFixed(2)}R / Loss ${data.avgLossR.toFixed(2)}R`, status: data.profitFactor > 1 },
     { rule: 'Edge retention (last 5)',          value: `${data.rollingAvgR[data.rollingAvgR.length-1]?.rollingAvgR.toFixed(2)}R rolling avg`, status: (data.rollingAvgR[data.rollingAvgR.length-1]?.rollingAvgR || 0) > 0 },
   ];
 
@@ -92,7 +92,7 @@ export default async function RiskDashboard() {
           <h1 className="text-lg font-semibold text-white">Risk Dashboard</h1>
           <p className="text-[11px] text-[#6e7681] mt-0.5">Monitor drawdowns, recovery ability & system resilience</p>
         </div>
-        <span className="text-[11px] text-[#6e7681] bg-[#161b22] border border-[#30363d] px-3 py-1.5 rounded-full">
+        <span className="text-[11px] text-[#6e7681] bg-[#0A0A0A] border border-[#292929] px-3 py-1.5 rounded-full">
           30 Mar – 21 May 2026
         </span>
       </div>
@@ -100,7 +100,7 @@ export default async function RiskDashboard() {
       {/* SECTION 1 — Risk Health Score + Scorecards */}
       <div className="grid grid-cols-12 gap-4 items-stretch">
 
-        <div className="col-span-3 bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5 flex flex-col items-center justify-center">
+        <div className="col-span-3 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col items-center justify-center">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-3">Risk Health Score</p>
           <RiskScoreGauge score={data.riskHealthScore} label={data.riskLabel} color={data.riskLabelColor} />
           <p className="text-[10px] text-[#6e7681] mt-3 text-center">
@@ -110,9 +110,9 @@ export default async function RiskDashboard() {
           </p>
         </div>
 
-        <div className="col-span-3 bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5 flex flex-col justify-between">
-          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Drawdown Health</p>
-          <div className="grid grid-cols-2 divide-x divide-[#30363d] flex-1">
+        <div className="col-span-3 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col justify-between">
+          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider pb-3 mb-4 border-b border-[#292929]">Drawdown Health</p>
+           <div className="grid grid-cols-2 flex-1">
             <div className="pr-4 flex flex-col justify-center">
               <p className="text-[10px] text-[#6e7681] mb-1">Max Drawdown</p>
               <div className="text-[28px] font-bold text-red-400">{data.maxDrawdown.toFixed(2)}%</div>
@@ -120,15 +120,17 @@ export default async function RiskDashboard() {
             </div>
             <div className="pl-4 flex flex-col justify-center">
               <p className="text-[10px] text-[#6e7681] mb-1">Current Drawdown</p>
-              <div className="text-[28px] font-bold text-red-400">-{data.currentDrawdownPct.toFixed(2)}%</div>
-              <p className="text-[10px] text-[#6e7681] mt-1">${fmt(data.currentDrawdownDollar)}</p>
+              <div className={`text-[28px] font-bold ${data.currentDrawdownPct < 0.01 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {data.currentDrawdownPct < 0.01 ? '0.00%' : `-${data.currentDrawdownPct.toFixed(2)}%`}
+              </div>
+              <p className="text-[10px] text-[#6e7681] mt-1">{data.currentDrawdownPct < 0.01 ? 'At peak' : `$${fmt(data.currentDrawdownDollar)}`}</p>
             </div>
           </div>
         </div>
 
-        <div className="col-span-3 bg-[#161b22] border-l-2 border-l-amber-500 border border-[#30363d] rounded-xl p-5 flex flex-col justify-between">
-          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Recovery Health</p>
-          <div className="grid grid-cols-2 divide-x divide-[#30363d] flex-1">
+        <div className="col-span-3 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col justify-between">
+          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider pb-3 mb-4 border-b border-[#292929]">Recovery Health</p>
+           <div className="grid grid-cols-2 flex-1">
             <div className="pr-4 flex flex-col justify-center">
               <p className="text-[10px] text-[#6e7681] mb-1">Recovery Factor</p>
               <div className={`text-[28px] font-bold ${data.recoveryFactor >= 1 ? 'text-emerald-400' : 'text-red-400'}`}>{data.recoveryFactor.toFixed(2)}×</div>
@@ -142,9 +144,9 @@ export default async function RiskDashboard() {
           </div>
         </div>
 
-        <div className="col-span-3 bg-[#161b22] border-l-2 border-l-emerald-500 border border-[#30363d] rounded-xl p-5 flex flex-col justify-between">
-          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Survival Health</p>
-          <div className="grid grid-cols-2 divide-x divide-[#30363d] flex-1">
+        <div className="col-span-3 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col justify-between">
+          <p className="text-[10px] text-[#6e7681] uppercase tracking-wider pb-3 mb-4 border-b border-[#292929]">Survival Health</p>
+           <div className="grid grid-cols-2 flex-1">
             <div className="pr-4 flex flex-col justify-center">
               <p className="text-[10px] text-[#6e7681] mb-1">Risk of Ruin</p>
               <div className={`text-[28px] font-bold ${Math.max(0, data.riskOfRuin) < 1 ? 'text-emerald-400' : 'text-red-400'}`}>{Math.max(0, data.riskOfRuin).toFixed(2)}%</div>
@@ -152,8 +154,8 @@ export default async function RiskDashboard() {
             </div>
             <div className="pl-4 flex flex-col justify-center">
               <p className="text-[10px] text-[#6e7681] mb-1">Ulcer Index</p>
-              <div className={`text-[28px] font-bold ${Math.abs(data.ulcerIndex) < 10 ? 'text-emerald-400' : 'text-amber-400'}`}>{Math.abs(data.ulcerIndex).toFixed(2)}</div>
-              <p className="text-[10px] text-[#6e7681] mt-1">{Math.abs(data.ulcerIndex) < 10 ? 'Low' : 'High'}</p>
+              <div className={`text-[28px] font-bold ${Math.abs(data.ulcerIndex) < 15 ? 'text-emerald-400' : Math.abs(data.ulcerIndex) < 40 ? 'text-amber-400' : 'text-red-400'}`}>{Math.abs(data.ulcerIndex).toFixed(2)}</div>
+              <p className="text-[10px] text-[#6e7681] mt-1">{Math.abs(data.ulcerIndex) < 15 ? 'Low' : Math.abs(data.ulcerIndex) < 40 ? 'Moderate' : 'High'}</p>
             </div>
           </div>
         </div>
@@ -161,12 +163,12 @@ export default async function RiskDashboard() {
 
       {/* SECTION 2 — Drawdown Over Time + Drawdown Intelligence */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8 bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-8 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Drawdown Over Time</p>
             <div className="flex gap-4">
               {[
-                { label: 'Current DD',        value: `-${data.currentDrawdownPct.toFixed(2)}%`, color: 'text-red-400'    },
+                { label: 'Current DD',        value: data.currentDrawdownPct < 0.01 ? '0.00%' : `-${data.currentDrawdownPct.toFixed(2)}%`, color: data.currentDrawdownPct < 0.01 ? 'text-emerald-400' : 'text-red-400' },
                 { label: 'Peak DD',           value: `${data.maxDrawdown.toFixed(2)}%`,          color: 'text-red-400'    },
                 { label: 'Recovery Progress', value: `${data.recoveryProgress}%`,               color: 'text-emerald-400' },
               ].map((s, i) => (
@@ -180,18 +182,18 @@ export default async function RiskDashboard() {
           <DrawdownOverTimeChart data={drawdownData} maxDD={data.maxDrawdown} />
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Drawdown Intelligence</p>
           <div className="space-y-0">
             {[
-              { label: 'Max Drawdown',         value: `${data.maxDrawdown.toFixed(2)}%`,                  color: 'text-red-400'    },
-              { label: 'Max Drawdown ($)',      value: `$${fmt(data.maxDrawdownDollar)}`,                  color: 'text-red-400'    },
-              { label: 'Average Drawdown',      value: `${data.avgDrawdownPct.toFixed(2)}%`,               color: 'text-amber-400'  },
-              { label: 'Longest DD Duration',   value: `${data.maxDrawdownDuration} campaigns`,            color: 'text-amber-400'  },
-              { label: 'Avg DD Duration',       value: `${data.avgDDDuration} campaigns`,                  color: 'text-[#8b949e]'  },
-              { label: 'Current DD Rank',       value: `${data.currentDDRank > 0 ? data.currentDDRank + ' worst' : 'N/A'} of ${data.drawdownPeriodsCount}`, color: 'text-amber-400' },
+              { label: 'Max Drawdown',         value: `${data.maxDrawdown.toFixed(2)}%`,                                         color: 'text-red-400'    },
+              { label: 'Max Drawdown ($)',      value: `$${fmt(data.maxDrawdownDollar)}`,                                          color: 'text-red-400'    },
+              { label: 'Average Drawdown',      value: `${data.avgDrawdownPct.toFixed(2)}%`,                                       color: 'text-amber-400'  },
+              { label: 'Longest DD Duration',   value: `${data.maxDrawdownDuration} campaigns`,                                    color: 'text-amber-400'  },
+              { label: 'Avg DD Duration',       value: data.avgDDDuration > 0 ? `${data.avgDDDuration} campaigns` : '—',           color: 'text-[#8b949e]'  },
+              { label: 'Current DD Rank',       value: data.currentDDRank > 0 ? `${data.currentDDRank} worst of ${data.drawdownPeriodsCount}` : '— (recovered)', color: data.currentDDRank > 0 ? 'text-amber-400' : 'text-emerald-400' },
             ].map((item, i) => (
-              <div key={i} className="flex justify-between items-center py-2.5 border-b border-[#21262d]">
+              <div key={i} className="flex justify-between items-center py-2.5 border-b border-[#1a1a1a]">
                 <span className="text-[11px] text-[#6e7681]">{item.label}</span>
                 <span className={`text-[12px] font-medium ${item.color}`}>{item.value}</span>
               </div>
@@ -203,9 +205,9 @@ export default async function RiskDashboard() {
       {/* SECTION 3 — Recovery Analysis + Daily P/L Volatility + Outcome Profile */}
       <div className="grid grid-cols-3 gap-4">
 
-        <div className="bg-[#161b22] border-l-2 border-l-emerald-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Recovery Analysis</p>
-          <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-[#30363d]">
+          <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-[#292929]">
             <div>
               <p className="text-[10px] text-[#6e7681] mb-1">Largest Recovery</p>
               <div className="text-[28px] font-bold text-emerald-400">+{data.largestRecovery.toFixed(2)}R</div>
@@ -221,7 +223,7 @@ export default async function RiskDashboard() {
                 <span className="text-[#6e7681]">Recovery Success Rate</span>
                 <span className="text-emerald-400 font-medium">{data.recoverySuccessRate}%</span>
               </div>
-              <div className="w-full bg-[#21262d] rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-[#1a1a1a] rounded-full h-1.5 overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${data.recoverySuccessRate}%` }} />
               </div>
             </div>
@@ -230,18 +232,21 @@ export default async function RiskDashboard() {
                 <span className="text-[#6e7681]">Recovery Progress (current DD)</span>
                 <span className="text-[#50A2FF] font-medium">{data.recoveryProgress}%</span>
               </div>
-              <div className="w-full bg-[#21262d] rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-[#1a1a1a] rounded-full h-1.5 overflow-hidden">
                 <div className="h-full bg-[#50A2FF] rounded-full" style={{ width: `${data.recoveryProgress}%` }} />
               </div>
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-[#30363d]">
+            <div className="flex justify-between items-center pt-2 border-t border-[#292929]">
               <p className="text-[11px] text-[#6e7681]">Est. Campaigns to Recover</p>
-              <span className="text-[28px] font-bold text-amber-400">{data.estCampaignsToRecover}</span>
+              {data.currentDrawdownPct < 0.01
+                ? <span className="text-[16px] font-bold text-emerald-400">Recovered ✓</span>
+                : <span className="text-[28px] font-bold text-amber-400">{data.estCampaignsToRecover}</span>
+              }
             </div>
           </div>
         </div>
 
-        <div className="bg-[#161b22] border-l-2 border-l-[#50A2FF] border border-[#30363d] rounded-xl p-5">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Daily P/L Volatility</p>
             <span className="text-[11px] text-[#50A2FF]">Std Dev: ${data.dailyPLStdDev.toFixed(2)}</span>
@@ -249,7 +254,7 @@ export default async function RiskDashboard() {
           <DailyPLChart data={data.dailyPLArr} />
         </div>
 
-        <div className="bg-[#161b22] border-l-2 border-l-[#50A2FF] border border-[#30363d] rounded-xl p-5">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Outcome Profile (R-Multiple)</p>
             <div className="text-right">
@@ -264,7 +269,7 @@ export default async function RiskDashboard() {
       {/* SECTION 4 — Risk Concentration + Risk Attribution + Risk Rules */}
       <div className="grid grid-cols-3 gap-4">
 
-        <div className="bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Risk Concentration</p>
           <div className="space-y-4 flex-1">
             {concentrationData.map((item, i) => (
@@ -273,13 +278,13 @@ export default async function RiskDashboard() {
                   <span className="text-[#8b949e]">{item.label}</span>
                   <span className={`font-medium ${item.color}`}>{item.pct}% {item.note}</span>
                 </div>
-                <div className="w-full bg-[#21262d] rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-[#1a1a1a] rounded-full h-2 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${item.pct}%`, background: item.barColor }} />
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-5 pt-4 border-t border-[#30363d]">
+          <div className="mt-5 pt-4 border-t border-[#292929]">
             <div className="flex justify-between text-[10px] mb-2">
               <span className="text-[#6e7681]">Loss : Gain Ratio</span>
               <span className="text-[18px] font-bold text-amber-400">{data.lossGainRatio} : 1</span>
@@ -292,7 +297,7 @@ export default async function RiskDashboard() {
           </div>
         </div>
 
-        <div className="bg-[#161b22] border-l-2 border-l-amber-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-1">Risk Attribution</p>
           <p className="text-[10px] text-[#6e7681] mb-4">What's causing losses?</p>
           <div className="space-y-4 flex-1">
@@ -304,24 +309,24 @@ export default async function RiskDashboard() {
                     <span className="text-[#8b949e]">{item.reason}</span>
                     <span className="text-white font-medium">{item.pct}%</span>
                   </div>
-                  <div className="w-full bg-[#21262d] rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-[#1a1a1a] rounded-full h-2 overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${item.pct}%`, background: colors[i] || '#6e7681' }} />
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="mt-5 pt-4 border-t border-[#30363d] flex justify-between text-[10px]">
+          <div className="mt-5 pt-4 border-t border-[#292929] flex justify-between text-[10px]">
             <span className="text-[#6e7681]">Total</span>
             <span className="text-white font-medium">100%</span>
           </div>
         </div>
 
-        <div className="bg-[#161b22] border-l-2 border-l-emerald-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Risk Rules & Governance</p>
           <div className="space-y-0 flex-1">
             {riskRules.map((rule, i) => (
-              <div key={i} className="flex items-start justify-between gap-2 py-2.5 border-b border-[#21262d]">
+              <div key={i} className="flex items-start justify-between gap-2 py-2.5 border-b border-[#1a1a1a]">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   {rule.status
                     ? <CheckCircle size={12} className="text-emerald-400 shrink-0" />
@@ -343,7 +348,7 @@ export default async function RiskDashboard() {
       {/* SECTION 5 — System Resilience + Forward Risk Outlook + Executive Risk Insight */}
       <div className="grid grid-cols-12 gap-4">
 
-        <div className="col-span-4 bg-[#161b22] border-l-2 border-l-emerald-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">System Resilience</p>
           <div className="space-y-4 flex-1">
             {[
@@ -356,19 +361,19 @@ export default async function RiskDashboard() {
                   <span className="text-[#6e7681]">{item.label}</span>
                   <span className={`font-medium ${item.color}`}>{item.value}</span>
                 </div>
-                <div className="w-full bg-[#21262d] rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-[#1a1a1a] rounded-full h-2 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${Math.min(100, item.barPct)}%`, background: item.barColor }} />
                 </div>
               </div>
             ))}
           </div>
-          <div className="border-t border-[#30363d] pt-4 mt-4 space-y-3">
+          <div className="border-t border-[#292929] pt-4 mt-4 space-y-3">
             <div>
               <div className="flex justify-between text-[10px] mb-1.5">
                 <span className="text-[#6e7681]">Survival Probability</span>
                 <span className="text-emerald-400 font-bold text-[13px]">{data.survivalProbability}%</span>
               </div>
-              <div className="w-full bg-[#21262d] rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-[#1a1a1a] rounded-full h-2 overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, parseFloat(data.survivalProbability))}%` }} />
               </div>
             </div>
@@ -385,7 +390,7 @@ export default async function RiskDashboard() {
           </div>
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border-l-2 border-l-amber-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Forward Risk Outlook</p>
           <div className="space-y-0 flex-1">
             {[
@@ -397,7 +402,7 @@ export default async function RiskDashboard() {
               { label: 'Profit Factor',             value: data.profitFactor.toFixed(2),                                               color: data.profitFactor >= 1 ? 'text-emerald-400' : 'text-red-400' },
               { label: 'Rolling 5-Campaign Avg R',  value: `${data.rollingAvgR[data.rollingAvgR.length-1]?.rollingAvgR.toFixed(2)}R`,  color: (data.rollingAvgR[data.rollingAvgR.length-1]?.rollingAvgR || 0) > 0 ? 'text-emerald-400' : 'text-red-400' },
             ].map((item, i) => (
-              <div key={i} className="flex justify-between items-center py-2.5 border-b border-[#21262d]">
+              <div key={i} className="flex justify-between items-center py-2.5 border-b border-[#1a1a1a]">
                 <span className="text-[11px] text-[#6e7681]">{item.label}</span>
                 <span className={`text-[12px] font-medium ${item.color}`}>{item.value}</span>
               </div>
@@ -405,27 +410,30 @@ export default async function RiskDashboard() {
           </div>
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border-l-2 border-l-red-500 border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle size={13} className={data.riskHealthScore < 40 ? 'text-red-400' : 'text-amber-400'} />
+            {data.riskHealthScore >= 70
+              ? <Info size={13} className="text-[#50A2FF]" />
+              : <AlertTriangle size={13} className={data.riskHealthScore < 40 ? 'text-red-400' : 'text-amber-400'} />
+            }
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Executive Risk Insight</p>
           </div>
           <p className="text-[12px] text-[#8b949e] leading-relaxed mb-4">{insight}</p>
-          <div className="mt-auto border-t border-[#30363d] pt-4 space-y-2">
+          <div className="mt-auto border-t border-[#292929] pt-4 space-y-2">
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-2">Risk Score Breakdown</p>
             {[
-              { label: 'Drawdown Control',  score: Math.round(data.riskHealthScore * 0.25), max: 25 },
-              { label: 'Recovery Factor',   score: Math.round(data.riskHealthScore * 0.20), max: 20 },
-              { label: 'Streak Control',    score: Math.round(data.riskHealthScore * 0.20), max: 20 },
-              { label: 'Edge Retention',    score: Math.round(data.riskHealthScore * 0.20), max: 20 },
-              { label: 'Risk of Ruin',      score: Math.round(data.riskHealthScore * 0.15), max: 15 },
+              { label: 'Drawdown Control',  score: data.riskSubScores.drawdownControl, max: 25 },
+              { label: 'Recovery Factor',   score: data.riskSubScores.recoveryFactor,  max: 20 },
+              { label: 'Streak Control',    score: data.riskSubScores.streakControl,   max: 20 },
+              { label: 'Edge Retention',    score: data.riskSubScores.edgeRetention,   max: 20 },
+              { label: 'Risk of Ruin',      score: data.riskSubScores.riskOfRuin,      max: 15 },
             ].map((item, i) => (
               <div key={i}>
                 <div className="flex justify-between text-[10px] mb-1">
                   <span className="text-[#6e7681]">{item.label}</span>
                   <span className="text-white">{item.score}/{item.max}</span>
                 </div>
-                <div className="w-full bg-[#21262d] rounded-full h-1 overflow-hidden">
+                <div className="w-full bg-[#1a1a1a] rounded-full h-1 overflow-hidden">
                   <div className="h-full rounded-full bg-[#50A2FF]" style={{ width: `${(item.score / item.max) * 100}%` }} />
                 </div>
               </div>
@@ -435,11 +443,11 @@ export default async function RiskDashboard() {
       </div>
 
       {/* SECTION 6 — Key Takeaways */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+      <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
         <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Key Takeaways & Actionable Insights</p>
         <div className="grid grid-cols-5 gap-4">
           {takeaways.map((t, i) => (
-            <div key={i} className="bg-[#0d1117] rounded-xl p-4 border border-[#30363d]">
+            <div key={i} className="bg-[#000000] rounded-xl p-4 border border-[#292929]">
               <div className="mb-3"><t.icon size={18} className={t.color} /></div>
               <p className={`text-[12px] font-semibold mb-1.5 ${t.color}`}>{t.title}</p>
               <p className="text-[11px] text-[#6e7681] leading-relaxed">{t.detail}</p>

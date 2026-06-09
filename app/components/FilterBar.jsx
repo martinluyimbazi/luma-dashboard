@@ -35,7 +35,7 @@ export default function FilterBar({ filters, onChange, summary }) {
         className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] transition-colors ${
           hasActiveFilters
             ? 'bg-blue-600/20 border-blue-500/50 text-blue-400'
-            : 'bg-[#161b22] border-[#30363d] text-[#6e7681] hover:text-white hover:border-[#6e7681]'
+            : 'bg-[#0A0A0A] border-[#292929] text-[#6e7681] hover:text-white hover:border-[#6e7681]'
         }`}
       >
         <Filter size={11} />
@@ -45,7 +45,7 @@ export default function FilterBar({ filters, onChange, summary }) {
 
       {/* Expanded filter panel */}
       {open && (
-        <div className="absolute right-0 top-8 z-50 bg-[#161b22] border border-[#30363d] rounded-xl p-4 shadow-xl min-w-[340px]">
+        <div className="absolute right-0 top-8 z-50 bg-[#0A0A0A] border border-[#292929] rounded-xl p-4 shadow-xl min-w-[340px]">
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] text-white font-medium">Filter Data</span>
             <button onClick={() => setOpen(false)}>
@@ -64,7 +64,7 @@ export default function FilterBar({ filters, onChange, summary }) {
                         type="date"
                         value={values[f.key]?.from || ''}
                         onChange={e => update(f.key, { ...values[f.key], from: e.target.value })}
-                        className="w-full bg-[#0d1117] border border-[#30363d] text-white text-[11px] rounded-lg pl-7 pr-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#000000] border border-[#292929] text-white text-[11px] rounded-lg pl-7 pr-2 py-1.5 focus:outline-none focus:border-blue-500"
                       />
                     </div>
                     <span className="text-[#6e7681] text-[10px]">to</span>
@@ -74,7 +74,7 @@ export default function FilterBar({ filters, onChange, summary }) {
                         type="date"
                         value={values[f.key]?.to || ''}
                         onChange={e => update(f.key, { ...values[f.key], to: e.target.value })}
-                        className="w-full bg-[#0d1117] border border-[#30363d] text-white text-[11px] rounded-lg pl-7 pr-2 py-1.5 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-[#000000] border border-[#292929] text-white text-[11px] rounded-lg pl-7 pr-2 py-1.5 focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -83,7 +83,7 @@ export default function FilterBar({ filters, onChange, summary }) {
                   <select
                     value={values[f.key]}
                     onChange={e => update(f.key, e.target.value)}
-                    className="w-full bg-[#0d1117] border border-[#30363d] text-white text-[11px] rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[#000000] border border-[#292929] text-white text-[11px] rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
                   >
                     {f.options.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -93,10 +93,10 @@ export default function FilterBar({ filters, onChange, summary }) {
               </div>
             ))}
           </div>
-          <div className="flex justify-end mt-4 pt-3 border-t border-[#30363d]">
+          <div className="flex justify-end mt-4 pt-3 border-t border-[#292929]">
             <button
               onClick={reset}
-              className="text-[11px] text-[#6e7681] hover:text-white border border-[#30363d] rounded-lg px-3 py-1.5 hover:border-[#6e7681] transition-colors"
+              className="text-[11px] text-[#6e7681] hover:text-white border border-[#292929] rounded-lg px-3 py-1.5 hover:border-[#6e7681] transition-colors"
             >
               Reset filters
             </button>

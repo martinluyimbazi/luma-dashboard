@@ -8,7 +8,7 @@ export default function MetricCard({ label, value, sub, color = 'white', prefix 
   };
 
   return (
-    <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 flex flex-col gap-1">
+    <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-4 flex flex-col gap-1">
       <span className="text-[11px] text-[#6e7681] uppercase tracking-wider font-medium">{label}</span>
       <span className={`text-2xl font-bold ${colors[color]}`}>
         {prefix}{value}{suffix}

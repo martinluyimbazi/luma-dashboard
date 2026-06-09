@@ -12,7 +12,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-[#161b22] border-b border-[#30363d] px-6 py-3 flex items-center justify-between sticky top-0 z-50">
+    <nav className="bg-[#0A0A0A] border-b border-[#292929] px-6 py-3 flex items-center justify-between sticky top-0 z-50">
       <div className="text-[15px] font-bold text-white">
         <span className="text-blue-400">Luma</span> Capital
         <span className="text-[11px] text-[#6e7681] font-normal ml-2">Dashboard</span>
@@ -24,8 +24,8 @@ export default function Navbar() {
             href={link.href}
             className={`px-4 py-1.5 rounded-lg text-[12px] font-medium transition-colors ${
               pathname === link.href
-                ? 'bg-blue-600 text-white'
-                : 'text-[#8b949e] hover:text-white hover:bg-[#21262d]'
+                ? 'bg-white text-[#000000] font-semibold'
+                : 'text-[#8b949e] hover:text-white hover:bg-[#1a1a1a]'
             }`}
           >
             {link.label}

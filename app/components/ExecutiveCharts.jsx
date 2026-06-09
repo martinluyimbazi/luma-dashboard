@@ -70,18 +70,15 @@ export function EquityChart({ data }) {
         </defs>
         <CartesianGrid
           strokeDasharray="0"
-          stroke="#21262d"
+          stroke="#1a1a1a"
           vertical={false}
           strokeWidth={0.5}
         />
         <XAxis
-          dataKey="date"
-          tick={{ fill: '#6e7681', fontSize: 10 }}
-          ticks={weeklyTicks}
-          tickFormatter={d => weeklyTickLabels[d] || ''}
-          interval={0}
-          axisLine={false}
-          tickLine={false}
+         dataKey="date"
+         tick={false}
+         axisLine={false}
+         tickLine={false}
         />
         <YAxis
           tick={{ fill: '#6e7681', fontSize: 10 }}
@@ -91,7 +88,7 @@ export function EquityChart({ data }) {
           tickLine={false}
         />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
           formatter={v => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Balance']}
           labelFormatter={l => l}
         />
@@ -121,7 +118,7 @@ export function RegimeChart({ data }) {
     <div className="flex flex-col h-full">
       <div className="flex-1">
         <ResponsiveContainer width="100%" height={130}>
-          <BarChart data={data} layout="vertical" margin={{ left: 0, right: 10, top: 0, bottom: 0 }}>
+          <BarChart data={data} layout="vertical" margin={{ left: 0, right: 10, top: 0, bottom: 0 }} style={{ cursor: 'default' }}>
             <XAxis
               type="number"
               tick={{ fill: '#6e7681', fontSize: 10 }}
@@ -138,24 +135,27 @@ export function RegimeChart({ data }) {
               tickLine={false}
               axisLine={false}
             />
-            <CartesianGrid strokeDasharray="0" stroke="#21262d" horizontal={false} strokeWidth={0.5} />
+            <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" horizontal={false} strokeWidth={0.5} />
             <Tooltip
-              contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
+              cursor={{ fill: '#141414' }}
+              contentStyle={{ background: '#000000', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
+              labelStyle={{ color: '#ffffff' }}
+              itemStyle={{ color: '#2F6BFF' }}
               formatter={v => [`${Number(v).toFixed(2)}R`, 'Avg R']}
             />
-            <ReferenceLine x={0} stroke="#30363d" strokeWidth={1} />
-            <Bar dataKey="avgR" radius={3} barSize={18}>
+            <ReferenceLine x={0} stroke="#292929" strokeWidth={1} />
+            <Bar dataKey="avgR" radius={0} barSize={18} background={{ fill: 'transparent' }}>
               {data.map((entry, i) => (
                 <Cell
                   key={i}
-                  fill={entry.avgR > 0.5 ? '#3fb950' : entry.avgR > 0 ? '#d29922' : '#f85149'}
+                  fill={entry.avgR > 0.5 ? '#2F6BFF' : entry.avgR > 0 ? '#d29922' : '#f85149'}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="space-y-1 pt-2 border-t border-[#21262d] mt-2">
+      <div className="space-y-1 pt-2 border-t border-[#1a1a1a] mt-2">
         <div className="flex justify-between text-[10px]">
           <span className="text-[#6e7681]">Expansion share of total R</span>
           <span className="text-emerald-400 font-medium">
@@ -195,12 +195,12 @@ export function DayOfWeekChart({ data }) {
           axisLine={false}
           tickLine={false}
         />
-        <CartesianGrid strokeDasharray="0" stroke="#21262d" vertical={false} strokeWidth={0.5} />
+        <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} strokeWidth={0.5} />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
           formatter={v => [`$${Number(v).toFixed(2)}`, 'Avg P/L']}
         />
-        <ReferenceLine y={0} stroke="#30363d" />
+        <ReferenceLine y={0} stroke="#292929" />
         <Bar dataKey="avgPL" radius={4}>
           {data.map((entry, i) => (
             <Cell key={i} fill={entry.avgPL >= 0 ? '#3fb950' : '#f85149'} />

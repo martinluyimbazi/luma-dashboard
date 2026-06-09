@@ -9,7 +9,7 @@ export function CumulativeRChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-        <CartesianGrid strokeDasharray="0" stroke="#21262d" vertical={false} strokeWidth={0.5} />
+        <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} strokeWidth={0.5} />
         <XAxis dataKey="setupId" hide />
         <YAxis
           tick={{ fill: '#6e7681', fontSize: 10 }}
@@ -19,11 +19,11 @@ export function CumulativeRChart({ data }) {
           tickLine={false}
         />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
-          formatter={(v, name) => [`${Number(v).toFixed(2)}R`, name === 'cumulativeR' ? 'Running R' : 'Peak R']}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
+          formatter={(v, name) => [`${Number(v).toFixed(2)}R`, name === 'Running R' ? 'Running R' : 'Peak R']}
           labelFormatter={l => `Campaign ${l}`}
         />
-        <ReferenceLine y={0} stroke="#30363d" />
+        <ReferenceLine y={0} stroke="#292929" />
         <Line type="monotone" dataKey="cumulativeR" stroke="#50A2FF" strokeWidth={2} dot={false} name="Running R" />
         <Line type="monotone" dataKey="runningPeak" stroke="#d29922" strokeWidth={1} dot={false} strokeDasharray="4 3" name="Peak R" />
       </LineChart>
@@ -35,7 +35,7 @@ export function RDistributionChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={320}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 50 }}>
-        <CartesianGrid strokeDasharray="0" stroke="#21262d" vertical={false} strokeWidth={0.5} />
+        <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} strokeWidth={0.5} />
         <XAxis
           dataKey="label"
           tick={{ fill: '#6e7681', fontSize: 9 }}
@@ -54,12 +54,14 @@ export function RDistributionChart({ data }) {
           label={{ value: 'Count', angle: -90, position: 'insideLeft', offset: 10, fill: '#6e7681', fontSize: 10 }}
         />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
+          cursor={{ fill: '#141414' }}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
+          itemStyle={{ color: '#2F6BFF' }}
           formatter={v => [v, 'Campaigns']}
         />
         <Bar dataKey="count" radius={0}>
           {data.map((entry, i) => (
-            <Cell key={i} fill={entry.isWin ? '#50A2FF' : '#f85149'} />
+            <Cell key={i} fill={entry.isWin ? '#2F6BFF' : '#F92B2B'} />
           ))}
         </Bar>
       </BarChart>

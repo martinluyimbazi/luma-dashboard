@@ -103,16 +103,16 @@ export default async function CampaignAnalytics() {
           <h1 className="text-lg font-semibold text-white">Campaign Analytics</h1>
           <p className="text-[11px] text-[#6e7681] mt-0.5">Deep dive into campaign performance and edge drivers</p>
         </div>
-        <span className="text-[11px] text-[#6e7681] bg-[#161b22] border border-[#30363d] px-3 py-1.5 rounded-full">
+        <span className="text-[11px] text-[#6e7681] bg-[#0A0A0A] border border-[#292929] px-3 py-1.5 rounded-full">
           {data.totalCampaigns} Campaigns · 30 Mar – 21 May 2026
         </span>
       </div>
 
       {/* SECTION 1 — Health Scorecard + Executive Insight */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-8 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Campaign Health Scorecard</p>
-          <div className="grid grid-cols-5 divide-x divide-[#30363d]">
+          <div className="grid grid-cols-5 divide-x divide-[#292929]">
             {healthScorecard.map((item, i) => (
               <div key={i} className={`flex flex-col gap-2 ${i === 0 ? 'pr-4' : 'px-4'}`}>
                 <p className="text-[10px] text-[#6e7681]">{item.label}</p>
@@ -122,7 +122,7 @@ export default async function CampaignAnalytics() {
             ))}
           </div>
         </div>
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[#50A2FF] text-[12px]">✦</span>
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Executive Insight</p>
@@ -134,9 +134,9 @@ export default async function CampaignAnalytics() {
       {/* SECTION 2 — KPI Groups */}
       <div className="grid grid-cols-3 gap-4">
 
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Campaign Efficiency</p>
-          <div className="grid grid-cols-3 divide-x divide-[#30363d]">
+          <div className="grid grid-cols-3 divide-x divide-[#292929]">
             <div className="pr-4">
               <div className="text-[22px] font-bold text-[#50A2FF]">{data.campaignWinRate.toFixed(1)}%</div>
               <p className="text-[10px] text-[#6e7681] mt-1">Win Rate</p>
@@ -145,19 +145,19 @@ export default async function CampaignAnalytics() {
             <div className="px-4">
               <div className="text-[22px] font-bold text-amber-400">{data.payoffRatio.toFixed(2)}×</div>
               <p className="text-[10px] text-[#6e7681] mt-1">Payoff Ratio</p>
-              <p className="text-[10px] text-[#6e7681]">avg win R ÷ avg loss R</p>
+              <p className="text-[10px] text-[#6e7681]">avg win R : avg loss R</p>
             </div>
             <div className="pl-4">
               <div className="text-[22px] font-bold text-emerald-400">{data.profitFactor.toFixed(2)}</div>
               <p className="text-[10px] text-[#6e7681] mt-1">Profit Factor</p>
-              <p className="text-[10px] text-[#6e7681]">total win R ÷ total loss R</p>
+              <p className="text-[10px] text-[#6e7681]">total win R : total loss R</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Campaign Output</p>
-          <div className="grid grid-cols-3 divide-x divide-[#30363d]">
+          <div className="grid grid-cols-3 divide-x divide-[#292929]">
             <div className="pr-4">
               <div className="text-[22px] font-bold text-[#50A2FF]">+{data.totalR.toFixed(2)}R</div>
               <p className="text-[10px] text-[#6e7681] mt-1">Total R Gained</p>
@@ -176,9 +176,9 @@ export default async function CampaignAnalytics() {
           </div>
         </div>
 
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Execution Quality</p>
-          <div className="grid grid-cols-2 divide-x divide-[#30363d]">
+          <div className="grid grid-cols-2 divide-x divide-[#292929]">
             <div className="pr-4">
               <div className="text-[22px] font-bold text-white">{data.avgAttemptsPerCampaign}</div>
               <p className="text-[10px] text-[#6e7681] mt-1">Avg Attempts / Campaign</p>
@@ -195,7 +195,7 @@ export default async function CampaignAnalytics() {
 
       {/* SECTION 3 — Cumulative R + Convexity */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-8 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-[#6e7681] uppercase tracking-wider">Cumulative R by Campaign</p>
             <div className="flex gap-4 text-[10px] text-[#6e7681]">
@@ -209,10 +209,10 @@ export default async function CampaignAnalytics() {
           </div>
           <CumulativeRChart data={data.campaigns} />
         </div>
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Convexity Overview</p>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 divide-x divide-[#30363d] pb-4 border-b border-[#30363d]">
+            <div className="grid grid-cols-2 divide-x divide-[#292929] pb-4 border-b border-[#292929]">
               <div className="pr-4">
                 <p className="text-[10px] text-[#6e7681] mb-1">Skewness</p>
                 <div className={`text-[22px] font-bold ${data.skewness > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -224,11 +224,11 @@ export default async function CampaignAnalytics() {
                 <div className="text-[22px] font-bold text-amber-400">{data.rightTailCampaigns}</div>
               </div>
             </div>
-            <div className="pb-3 border-b border-[#30363d]">
+            <div className="pb-3 border-b border-[#292929]">
               <p className="text-[10px] text-[#6e7681] mb-1">Top 1 Campaign Contribution</p>
               <div className="text-[22px] font-bold text-[#50A2FF]">{data.top1Contribution.toFixed(1)}%</div>
             </div>
-            <div className="pb-3 border-b border-[#30363d]">
+            <div className="pb-3 border-b border-[#292929]">
               <p className="text-[10px] text-[#6e7681] mb-1">Top 3 Campaign Contribution</p>
               <div className="text-[22px] font-bold text-[#50A2FF]">{data.top3Contribution.toFixed(1)}%</div>
             </div>
@@ -246,7 +246,7 @@ export default async function CampaignAnalytics() {
       {/* SECTION 4 — Campaign Extremes + R Distribution + Distribution Intelligence */}
       <div className="grid grid-cols-12 gap-4">
 
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Campaign Extremes</p>
           <div className="grid grid-cols-2 gap-4 flex-1">
             <div>
@@ -255,7 +255,7 @@ export default async function CampaignAnalytics() {
                 {data.bestCampaigns.map((c, i) => (
                   <div key={i} className="flex items-center justify-between gap-2">
                     <span className="text-[10px] text-[#6e7681] shrink-0 w-14">Setup {c.setupId}</span>
-                    <div className="flex-1 bg-[#21262d] rounded-full h-1 overflow-hidden">
+                    <div className="flex-1 bg-[#1a1a1a] rounded-full h-1 overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full"
                         style={{ width: `${(c.totalR / data.bestCampaigns[0].totalR) * 100}%` }} />
                     </div>
@@ -270,7 +270,7 @@ export default async function CampaignAnalytics() {
                 {data.worstCampaigns.map((c, i) => (
                   <div key={i} className="flex items-center justify-between gap-2">
                     <span className="text-[10px] text-[#6e7681] shrink-0 w-14">Setup {c.setupId}</span>
-                    <div className="flex-1 bg-[#21262d] rounded-full h-1 overflow-hidden">
+                    <div className="flex-1 bg-[#1a1a1a] rounded-full h-1 overflow-hidden">
                       <div className="h-full bg-red-500 rounded-full"
                         style={{ width: `${(Math.abs(c.totalR) / Math.abs(data.worstCampaigns[0].totalR)) * 100}%` }} />
                     </div>
@@ -280,12 +280,12 @@ export default async function CampaignAnalytics() {
               </div>
             </div>
           </div>
-          <div className="border-t border-[#30363d] mt-5 pt-4 space-y-3">
+          <div className="border-t border-[#292929] mt-5 pt-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-[#6e7681]">Best : Worst Magnitude Ratio</p>
               <span className="text-[20px] font-bold text-amber-400">{data.bestWorstRatio}×</span>
             </div>
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#21262d]">
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#1a1a1a]">
               <div>
                 <p className="text-[10px] text-[#6e7681] mb-1">Total winning R</p>
                 <p className="text-[13px] font-bold text-emerald-400">+{data.bestCampaigns.reduce((s,c) => s + c.totalR, 0).toFixed(2)}R</p>
@@ -298,27 +298,27 @@ export default async function CampaignAnalytics() {
           </div>
         </div>
 
-        <div className="col-span-5 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-5 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-3">R Distribution by Frequency</p>
           <RDistributionChart data={data.rDistributionNew} />
         </div>
 
-        <div className="col-span-3 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-3 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Distribution Intelligence</p>
           <div className="space-y-0">
-            <div className="py-4 border-b border-[#30363d]">
+            <div className="py-4 border-b border-[#292929]">
               <p className="text-[10px] text-[#6e7681] mb-1">Median Campaign</p>
               <div className={`text-[22px] font-bold ${data.medianR >= 0 ? 'text-[#50A2FF]' : 'text-red-400'}`}>
                 {data.medianR >= 0 ? '+' : ''}{data.medianR}R
               </div>
             </div>
-            <div className="py-4 border-b border-[#30363d]">
+            <div className="py-4 border-b border-[#292929]">
               <p className="text-[10px] text-[#6e7681] mb-1">Average Campaign</p>
               <div className={`text-[22px] font-bold ${data.avgReturnPerCampaign >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 +{data.avgReturnPerCampaign.toFixed(2)}R
               </div>
             </div>
-            <div className="py-4 border-b border-[#30363d]">
+            <div className="py-4 border-b border-[#292929]">
               <p className="text-[10px] text-[#6e7681] mb-1">Skewness</p>
               <div className={`text-[22px] font-bold ${data.skewness > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 {data.skewness > 0 ? '+' : ''}{data.skewness}
@@ -341,74 +341,74 @@ export default async function CampaignAnalytics() {
       {/* SECTION 5 — Exit Reasons + Attempt Efficiency + Return Attribution */}
       <div className="grid grid-cols-12 gap-4">
 
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5 flex flex-col">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Exit Reasons Analysis</p>
           <table className="w-full flex-1">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                {['Exit Reason', 'Freq', 'Avg R', 'Total R'].map(h => (
-                  <th key={h} className="text-left text-[10px] text-[#6e7681] pb-2 font-medium pr-2">{h}</th>
+              <tr className="border-b border-[#292929]">
+                {['Exit Reason', 'Freq', 'Avg R', 'Total R'].map((h, i) => (
+                  <th key={h} className={`text-[10px] text-[#6e7681] uppercase tracking-wider pb-2 font-normal ${i === 3 ? 'text-right' : 'text-left'}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.exitReasonsFull.map((row, i) => (
-                <tr key={i} className="border-b border-[#21262d]">
+                <tr key={i} className="border-b border-[#1a1a1a]">
                   <td className="py-2.5 text-[11px] text-white pr-2">{row.reason}</td>
                   <td className="py-2.5 text-[11px] text-[#6e7681]">{row.frequency}</td>
                   <td className={`py-2.5 text-[11px] font-medium ${row.avgR >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {row.avgR >= 0 ? '+' : ''}{row.avgR}R
                   </td>
-                  <td className={`py-2.5 text-[11px] font-medium ${row.totalR >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {row.totalR >= 0 ? '+' : ''}{row.totalR}R
+                  <td className={`py-2.5 text-[11px] font-medium text-right ${row.totalR >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+  {row.totalR >= 0 ? '+' : ''}{row.totalR}R
                   </td>
                 </tr>
               ))}
-              <tr className="border-t border-[#30363d]">
+              <tr className="border-t border-[#292929]">
                 <td className="py-2.5 text-[11px] font-medium text-white">Total</td>
                 <td className="py-2.5 text-[11px] text-white">{data.totalCampaigns}</td>
                 <td className="py-2.5 text-[11px] font-medium text-emerald-400">+{data.avgReturnPerCampaign.toFixed(2)}R</td>
-                <td className="py-2.5 text-[11px] font-medium text-emerald-400">+{data.totalR.toFixed(2)}R</td>
+                <td className="py-2.5 text-[11px] font-medium text-right text-emerald-400">+{data.totalR.toFixed(2)}R</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5 flex flex-col justify-between">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5 flex flex-col justify-between">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Attempt Efficiency (Win Rate by Attempts)</p>
           <table className="w-full flex-1">
             <thead>
-              <tr className="border-b border-[#30363d]">
-                {['Attempts', 'Campaigns', 'Win Rate', 'Avg R / Campaign'].map(h => (
-                  <th key={h} className="text-left text-[10px] text-[#6e7681] pb-2 font-medium pr-2">{h}</th>
+              <tr className="border-b border-[#292929]">
+                {['Attempts', 'Campaigns', 'Win Rate', 'Avg R / Campaign'].map((h, i) => (
+                  <th key={h} className={`text-[10px] text-[#6e7681] uppercase tracking-wider pb-2 font-normal ${i === 3 ? 'text-right' : 'text-left'}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.attemptEfficiency.filter(a => a.campaigns > 0).map((row, i) => (
-                <tr key={i} className="border-b border-[#21262d]">
+                <tr key={i} className="border-b border-[#1a1a1a]">
                   <td className="py-2.5 text-[11px] text-white">{row.attempts} attempt{row.attempts !== '1' ? 's' : ''}</td>
                   <td className="py-2.5 text-[11px] text-[#6e7681]">{row.campaigns}</td>
                   <td className={`py-2.5 text-[11px] font-medium ${row.winRate >= 50 ? 'text-emerald-400' : row.winRate >= 25 ? 'text-amber-400' : 'text-red-400'}`}>
                     {row.winRate}%
                   </td>
-                  <td className={`py-2.5 text-[11px] font-medium ${row.avgR >= 0 ? 'text-[#50A2FF]' : 'text-red-400'}`}>
-                    {row.avgR >= 0 ? '+' : ''}{row.avgR}R
+                  <td className={`py-2.5 text-[11px] font-medium text-right ${row.avgR >= 0 ? 'text-[#50A2FF]' : 'text-red-400'}`}>
+  {row.avgR >= 0 ? '+' : ''}{row.avgR}R
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           <div className="pt-3 mt-2 flex justify-between">
-            <p className="text-[11px] text-[#6e7681]">Average Attempts / Campaign</p>
+            <p className="text-[11px] text-[#6e7681]">Average Attempts / Campaign</p> 
             <span className="text-[13px] font-bold text-[#50A2FF]">{data.avgAttemptsPerCampaign}</span>
           </div>
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Return Attribution</p>
           <ReturnAttributionChart data={data.returnAttribution} totalR={data.totalR} />
-          <div className="mt-4 pt-3 border-t border-[#30363d] space-y-2">
+          <div className="mt-4 pt-3 border-t border-[#292929] space-y-2">
             {data.returnAttribution.map((d, i) => (
               <div key={i} className="flex justify-between text-[10px]">
                 <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export default async function CampaignAnalytics() {
               </div>
             ))}
           </div>
-          <div className="border-t border-[#30363d] pt-3 mt-3 flex justify-between">
+          <div className="border-t border-[#292929] pt-3 mt-3 flex justify-between">
             <p className="text-[11px] text-[#6e7681]">Total R Gained</p>
             <span className="text-[15px] font-bold text-emerald-400">+{data.totalR.toFixed(2)}R</span>
           </div>
@@ -430,9 +430,9 @@ export default async function CampaignAnalytics() {
 
       {/* SECTION 6 — Campaign Risk Health + Failure Mode */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-8 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Campaign Risk Health</p>
-          <div className="grid grid-cols-5 divide-x divide-[#30363d]">
+          <div className="grid grid-cols-5 divide-x divide-[#292929]">
             {[
               { label: 'Worst Campaign',         value: (data.worstCampaigns[0]?.totalR.toFixed(2) || '0') + 'R', sub: 'Setup ' + (data.worstCampaigns[0]?.setupId || ''), color: 'text-red-400'   },
               { label: 'Avg Losing Campaign',    value: data.avgLossR.toFixed(2) + 'R',                            sub: 'average of ' + data.lostCampaigns + ' losses',     color: 'text-red-400'   },
@@ -447,12 +447,12 @@ export default async function CampaignAnalytics() {
               </div>
             ))}
           </div>
-          <div className="mt-5 pt-5 border-t border-[#30363d] space-y-3">
+          <div className="mt-5 pt-5 border-t border-[#292929] space-y-3">
             <div className="flex justify-between text-[10px] text-[#6e7681] mb-2">
               <span>Drawdown recovered vs total R gained</span>
               <span className="text-white">{data.maxCampaignDD.toFixed(2)}R lost · +{data.totalR.toFixed(2)}R gained</span>
             </div>
-            <div className="w-full bg-[#21262d] rounded-full h-2.5 overflow-hidden">
+            <div className="w-full bg-[#1a1a1a] rounded-full h-2.5 overflow-hidden">
               <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min((data.totalR / (data.totalR + data.maxCampaignDD)) * 100, 100)}%` }} />
             </div>
             <div className="flex justify-between text-[10px] mt-1.5">
@@ -462,11 +462,11 @@ export default async function CampaignAnalytics() {
           </div>
         </div>
 
-        <div className="col-span-4 bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+        <div className="col-span-4 bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
           <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Failure Mode Summary</p>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#30363d]">
+              <tr className="border-b border-[#292929]">
                 {['Exit Reason', 'Count', '%'].map(h => (
                   <th key={h} className="text-left text-[10px] text-[#6e7681] pb-2 font-medium">{h}</th>
                 ))}
@@ -474,7 +474,7 @@ export default async function CampaignAnalytics() {
             </thead>
             <tbody>
               {data.exitReasonsFull.map((row, i) => (
-                <tr key={i} className="border-b border-[#21262d]">
+                <tr key={i} className="border-b border-[#1a1a1a]">
                   <td className="py-2.5 text-[11px] text-white">{row.reason}</td>
                   <td className="py-2.5 text-[11px] text-[#6e7681]">{row.frequency}</td>
                   <td className="py-2.5 text-[11px] text-[#6e7681]">
@@ -482,7 +482,7 @@ export default async function CampaignAnalytics() {
                   </td>
                 </tr>
               ))}
-              <tr className="border-t border-[#30363d]">
+              <tr className="border-t border-[#292929]">
                 <td className="py-2.5 text-[11px] font-medium text-white">Total</td>
                 <td className="py-2.5 text-[11px] text-white">{data.totalCampaigns}</td>
                 <td className="py-2.5 text-[11px] text-white">100%</td>
@@ -493,11 +493,11 @@ export default async function CampaignAnalytics() {
       </div>
 
       {/* SECTION 7 — Key Takeaways */}
-      <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5">
+      <div className="bg-[#0A0A0A] border border-[#292929] rounded-xl p-5">
         <p className="text-[10px] text-[#6e7681] uppercase tracking-wider mb-4">Key Takeaways & Actionable Insights</p>
         <div className="grid grid-cols-5 gap-4">
           {takeaways.map((t, i) => (
-            <div key={i} className="bg-[#0d1117] rounded-xl p-4 border border-[#30363d]">
+            <div key={i} className="bg-[#000000] rounded-xl p-4 border border-[#292929]">
               <div className="mb-3">
                 <t.icon size={18} className={t.color} />
               </div>

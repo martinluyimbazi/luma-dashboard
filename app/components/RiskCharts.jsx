@@ -15,7 +15,7 @@ export function DrawdownOverTimeChart({ data, maxDD }) {
             <stop offset="95%" stopColor="#f85149" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="0" stroke="#21262d" vertical={false} strokeWidth={0.5} />
+        <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} strokeWidth={0.5} />
         <XAxis
           dataKey="date"
           tick={{ fill: '#6e7681', fontSize: 10 }}
@@ -38,13 +38,13 @@ export function DrawdownOverTimeChart({ data, maxDD }) {
           domain={['auto', 0]}
         />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
           formatter={v => [`${Number(v).toFixed(2)}%`, 'Drawdown']}
           labelFormatter={l => l}
         />
         <ReferenceLine y={maxDD} stroke="#f85149" strokeDasharray="4 3" strokeOpacity={0.6}
           label={{ value: `${maxDD.toFixed(1)}%`, fill: '#f85149', fontSize: 9, position: 'insideBottomRight' }} />
-        <ReferenceLine y={0} stroke="#30363d" />
+        <ReferenceLine y={0} stroke="#292929" />
         <Area type="monotone" dataKey="drawdown" stroke="#f85149" fill="url(#ddGrad)" strokeWidth={1.5} dot={false} />
       </AreaChart>
     </ResponsiveContainer>
@@ -55,7 +55,7 @@ export function DailyPLChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={180}>
       <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="0" stroke="#21262d" vertical={false} strokeWidth={0.5} />
+        <CartesianGrid strokeDasharray="0" stroke="#1a1a1a" vertical={false} strokeWidth={0.5} />
         <XAxis dataKey="date" hide />
         <YAxis
           tick={{ fill: '#6e7681', fontSize: 10 }}
@@ -65,14 +65,18 @@ export function DailyPLChart({ data }) {
           tickLine={false}
         />
         <Tooltip
-          contentStyle={{ background: '#161b22', border: '1px solid #30363d', borderRadius: 8, fontSize: 11 }}
-          formatter={v => [`$${Number(v).toFixed(2)}`, 'Daily P/L']}
+          cursor={{ fill: '#141414' }}
+          contentStyle={{ background: '#0A0A0A', border: '1px solid #292929', borderRadius: 8, fontSize: 11 }}
+          formatter={(v) => {
+          const color = v >= 0 ? '#2F6BFF' : '#f85149';
+          return [<span style={{ color }}>${Number(v).toFixed(2)}</span>, 'Daily P/L'];
+          }}
           labelFormatter={l => l}
         />
-        <ReferenceLine y={0} stroke="#30363d" />
+        <ReferenceLine y={0} stroke="#292929" />
         <Bar dataKey="pl" radius={0}>
           {data.map((entry, i) => (
-            <Cell key={i} fill={entry.pl >= 0 ? '#50A2FF' : '#f85149'} />
+            <Cell key={i} fill={entry.pl >= 0 ? '#2F6BFF' : '#f85149'} />
           ))}
         </Bar>
       </BarChart>
@@ -133,7 +137,7 @@ export function RiskConcentrationChart({ data }) {
             <span className="text-[#8b949e]">{item.label}</span>
             <span className={`font-medium ${item.color}`}>{item.pct}% of total loss</span>
           </div>
-          <div className="w-full bg-[#21262d] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[#1a1a1a] rounded-full h-1.5 overflow-hidden">
             <div className="h-full rounded-full" style={{ width: `${item.pct}%`, background: item.barColor }} />
           </div>
         </div>
@@ -146,8 +150,8 @@ export function EdgeRetentionChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={60}>
       <LineChart data={data}>
-        <Line type="monotone" dataKey="rollingAvgR" stroke="#50A2FF" strokeWidth={1.5} dot={false} />
-        <ReferenceLine y={0} stroke="#30363d" strokeDasharray="3 2" />
+        <Line type="monotone" dataKey="rollingAvgR" stroke="#2F6BFF" strokeWidth={1.5} dot={false} />
+        <ReferenceLine y={0} stroke="#292929" strokeDasharray="3 2" />
       </LineChart>
     </ResponsiveContainer>
   );
